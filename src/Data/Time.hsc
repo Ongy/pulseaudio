@@ -44,7 +44,9 @@ getTime = alloca $ \ptr -> do
     ret <- clock_gettime #{const CLOCK_REALTIME} ptr
     if ret /= 0
        then error "This should not happen, PAs getTime failed"
-       else peek ptr
+       else do
+           time <- peek ptr
+           return time
 
 -- |Add seconds to a 'PATime'
 addSeconds :: Integral a => a -> PATime -> PATime

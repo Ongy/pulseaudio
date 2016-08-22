@@ -4,11 +4,12 @@ module Sound.Pulse.Mainloop.Simple
     ( MainloopImpl
     , getMainloopImpl
     , doIteration
+    , doLoop
     )
 where
 
 import System.Timeout (timeout)
-import Data.Maybe (listToMaybe, fromJust)
+import Data.Maybe (listToMaybe, fromJust, isJust)
 import Control.Applicative
 import Control.Arrow ((&&&))
 import Control.Concurrent
@@ -17,7 +18,7 @@ import Control.Monad (void, join, when, filterM)
 import Data.IORef
 import Data.List (insertBy, delete, deleteBy)
 import Data.Ord (comparing)
-import System.Posix.IO (createPipe, fdWrite)
+import System.Posix.IO (createPipe, fdWrite, fdRead)
 import System.Posix.Types (Fd(..))
 
 import Sound.Pulse.Mainloop
@@ -62,6 +63,7 @@ data MainloopImpl = MainloopImpl
     -- Lists for events
     { implIOEvents    :: IORef [IOEvent]
     , implTimeEvents  :: IORef [(PATime, TimeEvent)] -- ^The first entry will be the first one to expire (or has already expired)
+    , implTimeDisable :: IORef [TimeEvent] -- ^The first entry will be the first one to expire (or has already expired)
     , implDeferEvents :: IORef [DeferEvent]
 
     -- Counters for event ID
@@ -108,62 +110,75 @@ waitEvents impl = do
     (readEvt, writeEvt) <- splitEvents =<< readIORef (implIOEvents impl)
     readEvts  <- mapM waitReadEvent readEvt
     writeEvts <- mapM waitWriteEvent writeEvt
-    let readSTM = if null readEvts
-        then retry
-        else foldr1 (<|>) readEvts
-    let writeSTM = if null writeEvts
-        then retry
-        else foldr1 (<|>) writeEvts
-    -- We prefere reading over writing with this!
+    let readSTM = foldr (<|>) retry readEvts
+    let writeSTM = foldr (<|>) retry writeEvts
     return (readSTM <|> writeSTM)
+    --            if null readEvts
+    --        then retry
+    --        else foldr1 (<|>) readEvts
+    --            if null writeEvts
+    --        then retry
+    --        else foldr1 (<|>) writeEvts
+    -- We prefere reading over writing with this!
 
-
-getNextTime :: MainloopImpl -> IO (Maybe TimeEvent)
-getNextTime impl = do
-    now <- getTime
-    evts <- readIORef $ implTimeEvents impl
-    return . fmap snd $ listToMaybe $ dropWhile ((<) now . fst) evts
 
 -- Add wakup pipe!
 doRun :: MainloopImpl -> IO ()
 doRun impl = do
     (pipeWait, _) <- threadWaitReadSTM . fst . implPipe $ impl
     wait <- waitEvents impl
-    nextT <- getNextTime impl
+    nextT <- fmap snd . listToMaybe <$> readIORef (implTimeEvents impl)
+    -- let nextT = Nothing
     capp <- case nextT of
         Nothing -> return (fmap Just)
         Just x -> do
             now <- getTime
             evt <- readIORef $ timeDeadline x
-            return . timeout $ if now < evt
+            return . timeout $ if now > evt
                then 0
-               else fromIntegral (timeToUS (getDiff now evt))
+               else fromIntegral (timeToUS (getDiff evt now))
     ret <- capp (atomically ((Right <$> wait) <|> (Left <$> pipeWait)))
     case ret of
       -- if it is nothing we know that we have a timeout
         Nothing -> do
             let evt = fromJust nextT
             time <- readIORef $ timeDeadline evt
+            atomModifyIORef (implTimeEvents impl) tail
+            atomModifyIORef (implTimeDisable impl) (evt:)
             timeCallback evt time
         -- Just Right -> We got an IO Event
-        Just (Right (flag, evt)) -> ioCallback evt [flag]
+        Just (Right (flag, evt)) -> do
+            ioCallback evt [flag]
         -- Just Left -> We got woken up (read on pipe)
-        Just (Left _) -> return ()
+        -- We have to throw away what we wrote to wake up, so read
+        Just (Left _) -> do
+            _ <- fdRead (fst . implPipe $ impl) 512
+            return ()
 
 -- |Do one iteration of events. This may be dispatchin defered events,
--- |a timer, or simply a wakeup.
+-- |a timer, an io event, or simply a wakeup.
+-- |Event callback will be called in the same thread as this!
 doIteration :: MainloopImpl -> IO ()
 doIteration impl = do
     defers <- readIORef $ implDeferEvents impl
     actives <- filterM (readIORef . deferEnabled) defers
     if null actives
        then doRun impl
-       else mapM_ deferCallback actives
+       else do
+           mapM_ deferCallback actives
 
+doLoop :: MainloopImpl -> IO ()
+doLoop impl = do
+    doIteration impl
+    cont <- readIORef $ implRunning impl
+    if isJust cont
+       then putStrLn ("Ending Simpleloop: " ++ show cont)
+       else doLoop impl
 
 getMainloopImpl :: IO MainloopImpl
 getMainloopImpl = MainloopImpl
     <$> newIORef []
+    <*> newIORef []
     <*> newIORef []
     <*> newIORef []
 
@@ -173,11 +188,11 @@ getMainloopImpl = MainloopImpl
 
     <*> newIORef Nothing
     <*> createPipe
---    <*> do
---        (r, w) <- createPipe
---        rh <- fdToHandle r
---        wh <- fdToHandle w
---        return (rh, wh)
+    --    <*> do
+    --        (r, w) <- createPipe
+    --        rh <- fdToHandle r
+    --        wh <- fdToHandle w
+    --        return (rh, wh)
 
 atomModifyIORef :: IORef a -> (a -> a) -> IO ()
 atomModifyIORef ref fun = void $ atomicModifyIORef ref (fun &&& id)
@@ -188,7 +203,6 @@ removeTimeEvent evt =
 
 wakeImpl :: MainloopImpl -> IO ()
 wakeImpl = void . flip fdWrite "wakeup" . snd . implPipe
-    --flip hPutStr "wakeup" . snd . implPipe
 
 instance PAMainloop MainloopImpl where
     -- newtype wrappers, only needed because of the type system limitations
@@ -198,7 +212,8 @@ instance PAMainloop MainloopImpl where
 
     ioNew    :: MainloopImpl -> Fd -> [PAIOEventFlags] -> ([PAIOEventFlags] -> IO ()) -> IO (PAIOEvent MainloopImpl)
     ioNew impl fd flags callback = do
-        count <- atomicModifyIORef (implIOCount impl) (id &&& (+1))
+        count <- atomicModifyIORef (implIOCount impl) ((+1) &&& id)
+        -- putStrLn ("new IOEvent: " ++ show count)
         evt <- IOEvent callback fd impl count <$> newIORef flags <*> newIORef (return ())
         atomModifyIORef (implIOEvents impl) (evt:)
         wakeImpl impl
@@ -211,6 +226,7 @@ instance PAMainloop MainloopImpl where
 
     ioFree   :: (PAIOEvent MainloopImpl) -> IO ()
     ioFree (PAIOEvent x) = do
+        -- putStrLn "removing IOEvent"
         atomModifyIORef (implIOEvents . ioImpl $ x) (delete x)
         join . readIORef . ioDestroy $ x
         wakeImpl $ ioImpl x
@@ -221,7 +237,8 @@ instance PAMainloop MainloopImpl where
 
     timeNew :: MainloopImpl -> PATime -> (PATime -> IO ()) -> IO (PATimeEvent MainloopImpl)
     timeNew impl time callback = do
-        count <- atomicModifyIORef (implTimeCount impl) (id &&& (+1))
+        -- putStrLn ("new TimeEvent: " ++ show time)
+        count <- atomicModifyIORef (implTimeCount impl) ((+1) &&& id)
         evt <- TimeEvent callback impl count <$> newIORef time <*> newIORef (return ())
         atomModifyIORef (implTimeEvents impl) (insertBy (comparing fst) (time, evt))
         wakeImpl impl
@@ -229,13 +246,16 @@ instance PAMainloop MainloopImpl where
 
     timeRestart :: PATimeEvent MainloopImpl -> PATime -> IO ()
     timeRestart (PATimeEvent evt) time = do
+        -- putStrLn ("restarting Timer" ++ show time)
         removeTimeEvent evt
         writeIORef (timeDeadline evt) time
-        atomModifyIORef (implTimeEvents $ timeImpl evt) (insertBy (comparing fst) (time, evt))
+        atomModifyIORef (implTimeEvents $ timeImpl evt) (insertBy (comparing fst) (time, evt) . (filter ((/= evt) . snd)))
+        atomModifyIORef (implTimeDisable $ timeImpl evt) (filter (/=evt))
         wakeImpl $ timeImpl evt
 
     timeFree :: PATimeEvent MainloopImpl -> IO ()
     timeFree (PATimeEvent x) = do
+        -- putStrLn "removing Timer"
         removeTimeEvent x
         atomicWriteIORef (timeDeadline x) dummyTime
         join . readIORef . timeDestroy $ x
@@ -247,7 +267,8 @@ instance PAMainloop MainloopImpl where
 
     deferNew :: MainloopImpl -> IO () -> IO (PADeferEvent MainloopImpl)
     deferNew impl callback = do
-        count <- atomicModifyIORef (implDeferCount impl) (id &&& (+1))
+        -- putStrLn "new DeferEvent"
+        count <- atomicModifyIORef (implDeferCount impl) ((+1) &&& id)
         evt <- DeferEvent callback impl count <$> newIORef True <*> newIORef (return ())
         atomModifyIORef (implDeferEvents impl) (evt:)
         wakeImpl impl
@@ -258,6 +279,7 @@ instance PAMainloop MainloopImpl where
 
     deferFree :: PADeferEvent MainloopImpl -> IO ()
     deferFree (PADeferEvent x) = do
+        -- putStrLn "removing DeferEvent"
         atomModifyIORef (implDeferEvents . deferImpl $ x) (delete x)
         join . readIORef . deferDestroy $ x
     -- wakeImpl impl -- not here, when removed it doesn't matter and we

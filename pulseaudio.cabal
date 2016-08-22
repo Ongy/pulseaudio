@@ -45,6 +45,31 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+executable test
+  -- .hs or .lhs file containing the Main module.
+  main-is:             Test.hs
+  hs-source-dirs:      bin
+
+  -- Modules included in this executable, other than Main.
+  -- other-modules:
+
+  other-modules: 
+
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+
+  -- Other library packages from which modules are imported.
+  build-depends:       base >=4.6.0.1 && <5, pulseaudio
+
+  -- Directories containing source files.
+  -- hs-source-dirs:
+
+  -- Base language which the package is written in.
+  default-language:    Haskell2010
+
+  ghc-options:         -Wall
+
+  extra-libraries:     pulse
 
 library
   -- Modules exported by the library.
