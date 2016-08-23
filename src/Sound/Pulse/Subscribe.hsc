@@ -115,7 +115,7 @@ subscriptionMaskToInt SubscriptionMaskAll          = #{const PA_SUBSCRIPTION_MAS
 subscriptionMasksToInt :: [SubscriptionMask] -> CInt
 subscriptionMasksToInt = foldr (.|.) 0 . map subscriptionMaskToInt
 
-type SubscribeCB = PAContext -> CInt -> CUInt -> Ptr Userdata -> IO ()
+type SubscribeCB = Context -> CInt -> CUInt -> Ptr Userdata -> IO ()
 foreign import ccall "wrapper" mkSubscribeCB :: SubscribeCB -> IO (FunPtr SubscribeCB)
 
 -- pa_operation* pa_context_subscribe(pa_context_subscribepa_context *  c,
@@ -126,20 +126,20 @@ foreign import ccall "wrapper" mkSubscribeCB :: SubscribeCB -> IO (FunPtr Subscr
 
 
 foreign import ccall "pa_context_set_subscribe_callback" pa_context_set_subscribe_callback
-    :: PAContext
+    :: Context
     -> FunPtr SubscribeCB
     -> Ptr Userdata
     -> IO ()
 
 foreign import ccall "pa_context_subscribe" pa_context_subscribe
-    :: PAContext
+    :: Context
     -> CInt
-    -> FunPtr PAContextSuccessCB
+    -> FunPtr ContextSuccessCB
     -> Ptr Userdata
     -> IO (Ptr UOperation)
 
 subscribeEvents
-    :: PAContext
+    :: Context
     -> [SubscriptionMask]
     -> ((SubscriptionEventFacility, SubscriptionEventType)
         -> Word32

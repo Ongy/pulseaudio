@@ -11,8 +11,7 @@ module Sound.Pulse.Operation
     )
 where
 
-#include <pulse/def.h>
-
+import Sound.Pulse.Def (OperationState(..), operationStateFromInt)
 import Sound.Pulse.Userdata
 import Foreign.C.Types (CInt(..))
 import Foreign.Ptr
@@ -22,19 +21,6 @@ data IOperation
 data UOperation
 
 data Operation = Operation (ForeignPtr IOperation)
-
-data OperationState
-    = OperationRunning
-    | OperationDone
-    | OperationCancelled
-    deriving (Eq, Show)
-
-operationStateFromInt :: CInt -> OperationState
-operationStateFromInt i
-    | i == #{const PA_OPERATION_RUNNING}   = OperationRunning
-    | i == #{const PA_OPERATION_DONE}      = OperationDone
-    | i == #{const PA_OPERATION_CANCELLED} = OperationCancelled
-    | otherwise = error "PA: got unexpted operation state"
 
 type OperationNotifyCB = Ptr IOperation -> Ptr Userdata -> IO ()
 foreign import ccall "wrapper" mkOperationNCB :: OperationNotifyCB -> IO (FunPtr OperationNotifyCB)

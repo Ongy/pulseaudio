@@ -7,7 +7,7 @@ import Sound.Pulse.Mainloop
 import Sound.Pulse.Sinkinfo
 import Sound.Pulse.Subscribe
 
-dumpSinks :: PAContext -> IO ()
+dumpSinks :: Context -> IO ()
 dumpSinks cxt = void $ getContextSinks cxt fun endf
     where fun = putStrLn . show
           -- endf = quitLoop impl 0
@@ -17,18 +17,17 @@ dumpSinks cxt = void $ getContextSinks cxt fun endf
 main :: IO ()
 main = do
     impl <- getMainloopImpl
-    cxt <- getPAContext impl "hs-test"
-    setPAStateCallback cxt (\ccxt {- This is pretty useles, but who gives -}-> do
-        state <- getPAContextState ccxt
+    cxt <- getContext impl "hs-test"
+    setStateCallback cxt $ do
+        state <- getContextState cxt
         putStrLn ("State: " ++ show state)
         case state of
-            PAContextFailed -> do
+            ContextFailed -> do
                 putStr "PulseError: "
-                putStrLn =<< getPAContextErrStr ccxt
-                quitLoop impl =<< getPAContextErr ccxt
-            PAContextReady -> dumpSinks cxt
+                putStrLn =<< getContextErrStr cxt
+                quitLoop impl =<< getContextErr cxt
+            ContextReady -> dumpSinks cxt
             _ -> return ()
-        )
-    connectPAContext cxt Nothing []
+    connectContext cxt Nothing []
     --connectPAContext cxt (Just "10.13.36.2") []
     doLoop impl

@@ -2,9 +2,6 @@
 {-# LANGUAGE RecordWildCards #-}
 module Sound.Pulse.ChannelPosition
     ( ChannelPosition(..)
---    , channelPositionToInt
---    , channelPositionFromInt
-
     , ChannelMap(..)
     )
 where
