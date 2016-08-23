@@ -2,13 +2,76 @@ module Sound.Pulse.Def
 where
 
 #include <pulse/def.h>
-
+#include <pulse/channelmap.h>
+#include <pulse/sample.h>
 import Data.Bits (Bits(..))
-
 import Foreign.C.Types (CInt)
 
 foldFlag :: (Foldable t, Num b, Bits b) => (a -> b) -> t a -> b
 foldFlag fun = foldr ((.|.) . fun) 0
+
+data SubscriptionEventFacility
+    = SubscriptionEventSink
+    | SubscriptionEventSource
+    | SubscriptionEventSinkInput
+    | SubscriptionEventSourceOutput
+    | SubscriptionEventModule
+    | SubscriptionEventClient
+    | SubscriptionEventSampleCache
+    | SubscriptionEventServer
+    | SubscriptionEventAutoload
+    | SubscriptionEventCard
+    | SubscriptionEventFacilityMask
+    deriving (Eq, Show)
+
+subscriptionEventFacilityToInt :: SubscriptionEventFacility -> CInt
+subscriptionEventFacilityToInt SubscriptionEventSink = #{const PA_SUBSCRIPTION_EVENT_SINK}
+subscriptionEventFacilityToInt SubscriptionEventSource = #{const PA_SUBSCRIPTION_EVENT_SOURCE}
+subscriptionEventFacilityToInt SubscriptionEventSinkInput = #{const PA_SUBSCRIPTION_EVENT_SINK_INPUT}
+subscriptionEventFacilityToInt SubscriptionEventSourceOutput = #{const PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT}
+subscriptionEventFacilityToInt SubscriptionEventModule = #{const PA_SUBSCRIPTION_EVENT_MODULE}
+subscriptionEventFacilityToInt SubscriptionEventClient = #{const PA_SUBSCRIPTION_EVENT_CLIENT}
+subscriptionEventFacilityToInt SubscriptionEventSampleCache = #{const PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE}
+subscriptionEventFacilityToInt SubscriptionEventServer = #{const PA_SUBSCRIPTION_EVENT_SERVER}
+subscriptionEventFacilityToInt SubscriptionEventAutoload = #{const PA_SUBSCRIPTION_EVENT_AUTOLOAD}
+subscriptionEventFacilityToInt SubscriptionEventCard = #{const PA_SUBSCRIPTION_EVENT_CARD}
+subscriptionEventFacilityToInt SubscriptionEventFacilityMask = #{const PA_SUBSCRIPTION_EVENT_FACILITY_MASK}
+
+subscriptionEventFacilityFromInt :: CInt -> SubscriptionEventFacility
+subscriptionEventFacilityFromInt i
+    | i == #{const PA_SUBSCRIPTION_EVENT_SINK} = SubscriptionEventSink
+    | i == #{const PA_SUBSCRIPTION_EVENT_SOURCE} = SubscriptionEventSource
+    | i == #{const PA_SUBSCRIPTION_EVENT_SINK_INPUT} = SubscriptionEventSinkInput
+    | i == #{const PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT} = SubscriptionEventSourceOutput
+    | i == #{const PA_SUBSCRIPTION_EVENT_MODULE} = SubscriptionEventModule
+    | i == #{const PA_SUBSCRIPTION_EVENT_CLIENT} = SubscriptionEventClient
+    | i == #{const PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE} = SubscriptionEventSampleCache
+    | i == #{const PA_SUBSCRIPTION_EVENT_SERVER} = SubscriptionEventServer
+    | i == #{const PA_SUBSCRIPTION_EVENT_AUTOLOAD} = SubscriptionEventAutoload
+    | i == #{const PA_SUBSCRIPTION_EVENT_CARD} = SubscriptionEventCard
+    | i == #{const PA_SUBSCRIPTION_EVENT_FACILITY_MASK} = SubscriptionEventFacilityMask
+    | otherwise = error ("PA: Unexpeced value @subscriptionEventFacilityFromInt" ++ show i)
+
+data SubscriptionEventType
+    = SubscriptionEventNew
+    | SubscriptionEventChange
+    | SubscriptionEventRemove
+    | SubscriptionEventTypeMask
+    deriving (Eq, Show)
+
+subscriptionEventTypeToInt :: SubscriptionEventType -> CInt
+subscriptionEventTypeToInt SubscriptionEventNew = #{const PA_SUBSCRIPTION_EVENT_NEW}
+subscriptionEventTypeToInt SubscriptionEventChange = #{const PA_SUBSCRIPTION_EVENT_CHANGE}
+subscriptionEventTypeToInt SubscriptionEventRemove = #{const PA_SUBSCRIPTION_EVENT_REMOVE}
+subscriptionEventTypeToInt SubscriptionEventTypeMask = #{const PA_SUBSCRIPTION_EVENT_TYPE_MASK}
+
+subscriptionEventTypeFromInt :: CInt -> SubscriptionEventType
+subscriptionEventTypeFromInt i
+    | i == #{const PA_SUBSCRIPTION_EVENT_NEW} = SubscriptionEventNew
+    | i == #{const PA_SUBSCRIPTION_EVENT_CHANGE} = SubscriptionEventChange
+    | i == #{const PA_SUBSCRIPTION_EVENT_REMOVE} = SubscriptionEventRemove
+    | i == #{const PA_SUBSCRIPTION_EVENT_TYPE_MASK} = SubscriptionEventTypeMask
+    | otherwise = error ("PA: Unexpeced value @subscriptionEventTypeFromInt" ++ show i)
 
 data ContextState
     = ContextUnconnected
@@ -282,6 +345,270 @@ portAvailableFromInt i
     | i == #{const PA_PORT_AVAILABLE_NO} = PortAvailableNo
     | i == #{const PA_PORT_AVAILABLE_YES} = PortAvailableYes
     | otherwise = error ("PA: Unexpeced value @portAvailableFromInt" ++ show i)
+
+data ChannelPosition
+    = ChannelPositionInvalid
+    | ChannelPositionMono
+    | ChannelPositionFrontLeft
+    | ChannelPositionFrontRight
+    | ChannelPositionFrontCenter
+    | ChannelPositionLeft
+    | ChannelPositionRight
+    | ChannelPositionCenter
+    | ChannelPositionRearCenter
+    | ChannelPositionRearLeft
+    | ChannelPositionRearRight
+    | ChannelPositionLfe
+    | ChannelPositionSubwoofer
+    | ChannelPositionFrontLeftOfCenter
+    | ChannelPositionFrontRightOfCenter
+    | ChannelPositionSideLeft
+    | ChannelPositionSideRight
+    | ChannelPositionAux0
+    | ChannelPositionAux1
+    | ChannelPositionAux2
+    | ChannelPositionAux3
+    | ChannelPositionAux4
+    | ChannelPositionAux5
+    | ChannelPositionAux6
+    | ChannelPositionAux7
+    | ChannelPositionAux8
+    | ChannelPositionAux9
+    | ChannelPositionAux10
+    | ChannelPositionAux11
+    | ChannelPositionAux12
+    | ChannelPositionAux13
+    | ChannelPositionAux14
+    | ChannelPositionAux15
+    | ChannelPositionAux16
+    | ChannelPositionAux17
+    | ChannelPositionAux18
+    | ChannelPositionAux19
+    | ChannelPositionAux20
+    | ChannelPositionAux21
+    | ChannelPositionAux22
+    | ChannelPositionAux23
+    | ChannelPositionAux24
+    | ChannelPositionAux25
+    | ChannelPositionAux26
+    | ChannelPositionAux27
+    | ChannelPositionAux28
+    | ChannelPositionAux29
+    | ChannelPositionAux30
+    | ChannelPositionAux31
+    | ChannelPositionTopCenter
+    | ChannelPositionTopFrontLeft
+    | ChannelPositionTopFrontRight
+    | ChannelPositionTopFrontCenter
+    | ChannelPositionTopRearLeft
+    | ChannelPositionTopRearRight
+    | ChannelPositionTopRearCenter
+    | ChannelPositionMax
+    deriving (Eq, Show)
+
+channelPositionToInt :: ChannelPosition -> CInt
+channelPositionToInt ChannelPositionInvalid = #{const PA_CHANNEL_POSITION_INVALID}
+channelPositionToInt ChannelPositionMono = #{const PA_CHANNEL_POSITION_MONO}
+channelPositionToInt ChannelPositionFrontLeft = #{const PA_CHANNEL_POSITION_FRONT_LEFT}
+channelPositionToInt ChannelPositionFrontRight = #{const PA_CHANNEL_POSITION_FRONT_RIGHT}
+channelPositionToInt ChannelPositionFrontCenter = #{const PA_CHANNEL_POSITION_FRONT_CENTER}
+channelPositionToInt ChannelPositionLeft = #{const PA_CHANNEL_POSITION_LEFT}
+channelPositionToInt ChannelPositionRight = #{const PA_CHANNEL_POSITION_RIGHT}
+channelPositionToInt ChannelPositionCenter = #{const PA_CHANNEL_POSITION_CENTER}
+channelPositionToInt ChannelPositionRearCenter = #{const PA_CHANNEL_POSITION_REAR_CENTER}
+channelPositionToInt ChannelPositionRearLeft = #{const PA_CHANNEL_POSITION_REAR_LEFT}
+channelPositionToInt ChannelPositionRearRight = #{const PA_CHANNEL_POSITION_REAR_RIGHT}
+channelPositionToInt ChannelPositionLfe = #{const PA_CHANNEL_POSITION_LFE}
+channelPositionToInt ChannelPositionSubwoofer = #{const PA_CHANNEL_POSITION_SUBWOOFER}
+channelPositionToInt ChannelPositionFrontLeftOfCenter = #{const PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER}
+channelPositionToInt ChannelPositionFrontRightOfCenter = #{const PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER}
+channelPositionToInt ChannelPositionSideLeft = #{const PA_CHANNEL_POSITION_SIDE_LEFT}
+channelPositionToInt ChannelPositionSideRight = #{const PA_CHANNEL_POSITION_SIDE_RIGHT}
+channelPositionToInt ChannelPositionAux0 = #{const PA_CHANNEL_POSITION_AUX0}
+channelPositionToInt ChannelPositionAux1 = #{const PA_CHANNEL_POSITION_AUX1}
+channelPositionToInt ChannelPositionAux2 = #{const PA_CHANNEL_POSITION_AUX2}
+channelPositionToInt ChannelPositionAux3 = #{const PA_CHANNEL_POSITION_AUX3}
+channelPositionToInt ChannelPositionAux4 = #{const PA_CHANNEL_POSITION_AUX4}
+channelPositionToInt ChannelPositionAux5 = #{const PA_CHANNEL_POSITION_AUX5}
+channelPositionToInt ChannelPositionAux6 = #{const PA_CHANNEL_POSITION_AUX6}
+channelPositionToInt ChannelPositionAux7 = #{const PA_CHANNEL_POSITION_AUX7}
+channelPositionToInt ChannelPositionAux8 = #{const PA_CHANNEL_POSITION_AUX8}
+channelPositionToInt ChannelPositionAux9 = #{const PA_CHANNEL_POSITION_AUX9}
+channelPositionToInt ChannelPositionAux10 = #{const PA_CHANNEL_POSITION_AUX10}
+channelPositionToInt ChannelPositionAux11 = #{const PA_CHANNEL_POSITION_AUX11}
+channelPositionToInt ChannelPositionAux12 = #{const PA_CHANNEL_POSITION_AUX12}
+channelPositionToInt ChannelPositionAux13 = #{const PA_CHANNEL_POSITION_AUX13}
+channelPositionToInt ChannelPositionAux14 = #{const PA_CHANNEL_POSITION_AUX14}
+channelPositionToInt ChannelPositionAux15 = #{const PA_CHANNEL_POSITION_AUX15}
+channelPositionToInt ChannelPositionAux16 = #{const PA_CHANNEL_POSITION_AUX16}
+channelPositionToInt ChannelPositionAux17 = #{const PA_CHANNEL_POSITION_AUX17}
+channelPositionToInt ChannelPositionAux18 = #{const PA_CHANNEL_POSITION_AUX18}
+channelPositionToInt ChannelPositionAux19 = #{const PA_CHANNEL_POSITION_AUX19}
+channelPositionToInt ChannelPositionAux20 = #{const PA_CHANNEL_POSITION_AUX20}
+channelPositionToInt ChannelPositionAux21 = #{const PA_CHANNEL_POSITION_AUX21}
+channelPositionToInt ChannelPositionAux22 = #{const PA_CHANNEL_POSITION_AUX22}
+channelPositionToInt ChannelPositionAux23 = #{const PA_CHANNEL_POSITION_AUX23}
+channelPositionToInt ChannelPositionAux24 = #{const PA_CHANNEL_POSITION_AUX24}
+channelPositionToInt ChannelPositionAux25 = #{const PA_CHANNEL_POSITION_AUX25}
+channelPositionToInt ChannelPositionAux26 = #{const PA_CHANNEL_POSITION_AUX26}
+channelPositionToInt ChannelPositionAux27 = #{const PA_CHANNEL_POSITION_AUX27}
+channelPositionToInt ChannelPositionAux28 = #{const PA_CHANNEL_POSITION_AUX28}
+channelPositionToInt ChannelPositionAux29 = #{const PA_CHANNEL_POSITION_AUX29}
+channelPositionToInt ChannelPositionAux30 = #{const PA_CHANNEL_POSITION_AUX30}
+channelPositionToInt ChannelPositionAux31 = #{const PA_CHANNEL_POSITION_AUX31}
+channelPositionToInt ChannelPositionTopCenter = #{const PA_CHANNEL_POSITION_TOP_CENTER}
+channelPositionToInt ChannelPositionTopFrontLeft = #{const PA_CHANNEL_POSITION_TOP_FRONT_LEFT}
+channelPositionToInt ChannelPositionTopFrontRight = #{const PA_CHANNEL_POSITION_TOP_FRONT_RIGHT}
+channelPositionToInt ChannelPositionTopFrontCenter = #{const PA_CHANNEL_POSITION_TOP_FRONT_CENTER}
+channelPositionToInt ChannelPositionTopRearLeft = #{const PA_CHANNEL_POSITION_TOP_REAR_LEFT}
+channelPositionToInt ChannelPositionTopRearRight = #{const PA_CHANNEL_POSITION_TOP_REAR_RIGHT}
+channelPositionToInt ChannelPositionTopRearCenter = #{const PA_CHANNEL_POSITION_TOP_REAR_CENTER}
+channelPositionToInt ChannelPositionMax = #{const PA_CHANNEL_POSITION_MAX}
+
+channelPositionFromInt :: CInt -> ChannelPosition
+channelPositionFromInt i
+    | i == #{const PA_CHANNEL_POSITION_INVALID} = ChannelPositionInvalid
+    | i == #{const PA_CHANNEL_POSITION_MONO} = ChannelPositionMono
+    | i == #{const PA_CHANNEL_POSITION_FRONT_LEFT} = ChannelPositionFrontLeft
+    | i == #{const PA_CHANNEL_POSITION_FRONT_RIGHT} = ChannelPositionFrontRight
+    | i == #{const PA_CHANNEL_POSITION_FRONT_CENTER} = ChannelPositionFrontCenter
+    | i == #{const PA_CHANNEL_POSITION_LEFT} = ChannelPositionLeft
+    | i == #{const PA_CHANNEL_POSITION_RIGHT} = ChannelPositionRight
+    | i == #{const PA_CHANNEL_POSITION_CENTER} = ChannelPositionCenter
+    | i == #{const PA_CHANNEL_POSITION_REAR_CENTER} = ChannelPositionRearCenter
+    | i == #{const PA_CHANNEL_POSITION_REAR_LEFT} = ChannelPositionRearLeft
+    | i == #{const PA_CHANNEL_POSITION_REAR_RIGHT} = ChannelPositionRearRight
+    | i == #{const PA_CHANNEL_POSITION_LFE} = ChannelPositionLfe
+    | i == #{const PA_CHANNEL_POSITION_SUBWOOFER} = ChannelPositionSubwoofer
+    | i == #{const PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER} = ChannelPositionFrontLeftOfCenter
+    | i == #{const PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER} = ChannelPositionFrontRightOfCenter
+    | i == #{const PA_CHANNEL_POSITION_SIDE_LEFT} = ChannelPositionSideLeft
+    | i == #{const PA_CHANNEL_POSITION_SIDE_RIGHT} = ChannelPositionSideRight
+    | i == #{const PA_CHANNEL_POSITION_AUX0} = ChannelPositionAux0
+    | i == #{const PA_CHANNEL_POSITION_AUX1} = ChannelPositionAux1
+    | i == #{const PA_CHANNEL_POSITION_AUX2} = ChannelPositionAux2
+    | i == #{const PA_CHANNEL_POSITION_AUX3} = ChannelPositionAux3
+    | i == #{const PA_CHANNEL_POSITION_AUX4} = ChannelPositionAux4
+    | i == #{const PA_CHANNEL_POSITION_AUX5} = ChannelPositionAux5
+    | i == #{const PA_CHANNEL_POSITION_AUX6} = ChannelPositionAux6
+    | i == #{const PA_CHANNEL_POSITION_AUX7} = ChannelPositionAux7
+    | i == #{const PA_CHANNEL_POSITION_AUX8} = ChannelPositionAux8
+    | i == #{const PA_CHANNEL_POSITION_AUX9} = ChannelPositionAux9
+    | i == #{const PA_CHANNEL_POSITION_AUX10} = ChannelPositionAux10
+    | i == #{const PA_CHANNEL_POSITION_AUX11} = ChannelPositionAux11
+    | i == #{const PA_CHANNEL_POSITION_AUX12} = ChannelPositionAux12
+    | i == #{const PA_CHANNEL_POSITION_AUX13} = ChannelPositionAux13
+    | i == #{const PA_CHANNEL_POSITION_AUX14} = ChannelPositionAux14
+    | i == #{const PA_CHANNEL_POSITION_AUX15} = ChannelPositionAux15
+    | i == #{const PA_CHANNEL_POSITION_AUX16} = ChannelPositionAux16
+    | i == #{const PA_CHANNEL_POSITION_AUX17} = ChannelPositionAux17
+    | i == #{const PA_CHANNEL_POSITION_AUX18} = ChannelPositionAux18
+    | i == #{const PA_CHANNEL_POSITION_AUX19} = ChannelPositionAux19
+    | i == #{const PA_CHANNEL_POSITION_AUX20} = ChannelPositionAux20
+    | i == #{const PA_CHANNEL_POSITION_AUX21} = ChannelPositionAux21
+    | i == #{const PA_CHANNEL_POSITION_AUX22} = ChannelPositionAux22
+    | i == #{const PA_CHANNEL_POSITION_AUX23} = ChannelPositionAux23
+    | i == #{const PA_CHANNEL_POSITION_AUX24} = ChannelPositionAux24
+    | i == #{const PA_CHANNEL_POSITION_AUX25} = ChannelPositionAux25
+    | i == #{const PA_CHANNEL_POSITION_AUX26} = ChannelPositionAux26
+    | i == #{const PA_CHANNEL_POSITION_AUX27} = ChannelPositionAux27
+    | i == #{const PA_CHANNEL_POSITION_AUX28} = ChannelPositionAux28
+    | i == #{const PA_CHANNEL_POSITION_AUX29} = ChannelPositionAux29
+    | i == #{const PA_CHANNEL_POSITION_AUX30} = ChannelPositionAux30
+    | i == #{const PA_CHANNEL_POSITION_AUX31} = ChannelPositionAux31
+    | i == #{const PA_CHANNEL_POSITION_TOP_CENTER} = ChannelPositionTopCenter
+    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_LEFT} = ChannelPositionTopFrontLeft
+    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_RIGHT} = ChannelPositionTopFrontRight
+    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_CENTER} = ChannelPositionTopFrontCenter
+    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_LEFT} = ChannelPositionTopRearLeft
+    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_RIGHT} = ChannelPositionTopRearRight
+    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_CENTER} = ChannelPositionTopRearCenter
+    | i == #{const PA_CHANNEL_POSITION_MAX} = ChannelPositionMax
+    | otherwise = error ("PA: Unexpeced value @channelPositionFromInt" ++ show i)
+
+data ChannelMapDef
+    = ChannelMapAiff
+    | ChannelMapAlsa
+    | ChannelMapAux
+    | ChannelMapWaveex
+    | ChannelMapOss
+    | ChannelMapDefMax
+    | ChannelMapDefault
+    deriving (Eq, Show)
+
+channelMapDefToInt :: ChannelMapDef -> CInt
+channelMapDefToInt ChannelMapAiff = #{const PA_CHANNEL_MAP_AIFF}
+channelMapDefToInt ChannelMapAlsa = #{const PA_CHANNEL_MAP_ALSA}
+channelMapDefToInt ChannelMapAux = #{const PA_CHANNEL_MAP_AUX}
+channelMapDefToInt ChannelMapWaveex = #{const PA_CHANNEL_MAP_WAVEEX}
+channelMapDefToInt ChannelMapOss = #{const PA_CHANNEL_MAP_OSS}
+channelMapDefToInt ChannelMapDefMax = #{const PA_CHANNEL_MAP_DEF_MAX}
+channelMapDefToInt ChannelMapDefault = #{const PA_CHANNEL_MAP_DEFAULT}
+
+channelMapDefFromInt :: CInt -> ChannelMapDef
+channelMapDefFromInt i
+    | i == #{const PA_CHANNEL_MAP_AIFF} = ChannelMapAiff
+    | i == #{const PA_CHANNEL_MAP_ALSA} = ChannelMapAlsa
+    | i == #{const PA_CHANNEL_MAP_AUX} = ChannelMapAux
+    | i == #{const PA_CHANNEL_MAP_WAVEEX} = ChannelMapWaveex
+    | i == #{const PA_CHANNEL_MAP_OSS} = ChannelMapOss
+    | i == #{const PA_CHANNEL_MAP_DEF_MAX} = ChannelMapDefMax
+    | i == #{const PA_CHANNEL_MAP_DEFAULT} = ChannelMapDefault
+    | otherwise = error ("PA: Unexpeced value @channelMapDefFromInt" ++ show i)
+
+data SampleFormat
+    = SampleU8
+    | SampleAlaw
+    | SampleUlaw
+    | SampleS16le
+    | SampleS16be
+    | SampleFloat32le
+    | SampleFloat32be
+    | SampleS32le
+    | SampleS32be
+    | SampleS24le
+    | SampleS24be
+    | SampleS2432le
+    | SampleS2432be
+    | SampleMax
+    | SampleInvalid
+    deriving (Eq, Show)
+
+sampleFormatToInt :: SampleFormat -> CInt
+sampleFormatToInt SampleU8 = #{const PA_SAMPLE_U8}
+sampleFormatToInt SampleAlaw = #{const PA_SAMPLE_ALAW}
+sampleFormatToInt SampleUlaw = #{const PA_SAMPLE_ULAW}
+sampleFormatToInt SampleS16le = #{const PA_SAMPLE_S16LE}
+sampleFormatToInt SampleS16be = #{const PA_SAMPLE_S16BE}
+sampleFormatToInt SampleFloat32le = #{const PA_SAMPLE_FLOAT32LE}
+sampleFormatToInt SampleFloat32be = #{const PA_SAMPLE_FLOAT32BE}
+sampleFormatToInt SampleS32le = #{const PA_SAMPLE_S32LE}
+sampleFormatToInt SampleS32be = #{const PA_SAMPLE_S32BE}
+sampleFormatToInt SampleS24le = #{const PA_SAMPLE_S24LE}
+sampleFormatToInt SampleS24be = #{const PA_SAMPLE_S24BE}
+sampleFormatToInt SampleS2432le = #{const PA_SAMPLE_S24_32LE}
+sampleFormatToInt SampleS2432be = #{const PA_SAMPLE_S24_32BE}
+sampleFormatToInt SampleMax = #{const PA_SAMPLE_MAX}
+sampleFormatToInt SampleInvalid = #{const PA_SAMPLE_INVALID}
+
+sampleFormatFromInt :: CInt -> SampleFormat
+sampleFormatFromInt i
+    | i == #{const PA_SAMPLE_U8} = SampleU8
+    | i == #{const PA_SAMPLE_ALAW} = SampleAlaw
+    | i == #{const PA_SAMPLE_ULAW} = SampleUlaw
+    | i == #{const PA_SAMPLE_S16LE} = SampleS16le
+    | i == #{const PA_SAMPLE_S16BE} = SampleS16be
+    | i == #{const PA_SAMPLE_FLOAT32LE} = SampleFloat32le
+    | i == #{const PA_SAMPLE_FLOAT32BE} = SampleFloat32be
+    | i == #{const PA_SAMPLE_S32LE} = SampleS32le
+    | i == #{const PA_SAMPLE_S32BE} = SampleS32be
+    | i == #{const PA_SAMPLE_S24LE} = SampleS24le
+    | i == #{const PA_SAMPLE_S24BE} = SampleS24be
+    | i == #{const PA_SAMPLE_S24_32LE} = SampleS2432le
+    | i == #{const PA_SAMPLE_S24_32BE} = SampleS2432be
+    | i == #{const PA_SAMPLE_MAX} = SampleMax
+    | i == #{const PA_SAMPLE_INVALID} = SampleInvalid
+    | otherwise = error ("PA: Unexpeced value @sampleFormatFromInt" ++ show i)
 
 data ContextFlags
     = ContextNoflags

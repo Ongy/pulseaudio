@@ -2,6 +2,15 @@
 import Data.Char (isSpace, toUpper, toLower)
 import Data.List (isPrefixOf, dropWhile, notElem)
 
+data CEnum = CEnum String [String] deriving (Eq, Show)
+
+files :: [String]
+files =
+    [ "pulse/def.h"
+    , "pulse/channelmap.h"
+    , "pulse/sample.h"
+    ]
+
 hEnums :: [String]
 hEnums =
     [ "ContextState"
@@ -13,6 +22,9 @@ hEnums =
     , "SinkState"
     , "SourceState"
     , "PortAvailable"
+    , "ChannelMapDef"
+    , "ChannelPosition"
+    , "SampleFormat"
     ]
 
 hFlags :: [String]
@@ -23,7 +35,14 @@ hFlags =
     , "SourceFlags"
     ]
 
-data CEnum = CEnum String [String] deriving (Eq, Show)
+splitSubscribeEvent :: [CEnum] -> (CEnum, CEnum)
+splitSubscribeEvent [] = error "couldn't find SubscriptionMask"
+splitSubscribeEvent ((CEnum "SubscriptionEventType" args):_) =
+    (CEnum "SubscriptionEventFacility" (takeWhile (/= maskName) args ++ [maskName])
+    ,CEnum "SubscriptionEventType" (tail $ dropWhile (/= maskName) args)
+    )
+    where maskName = "PA_SUBSCRIPTION_EVENT_FACILITY_MASK"
+splitSubscribeEvent (x:xs) = splitSubscribeEvent xs
 
 findEnum :: [String] -> ([String], [String])
 findEnum xs =
@@ -202,8 +221,8 @@ putHead :: IO ()
 putHead = do
     putStrLn "module Sound.Pulse.Def"
     putStrLn "where\n"
-    putStrLn "#include <pulse/def.h>\n"
-    putStrLn "import Data.Bits (Bits(..))\n"
+    mapM_ (\file -> putStrLn ("#include <" ++ file ++ ">")) files
+    putStrLn "import Data.Bits (Bits(..))"
     putStrLn "import Foreign.C.Types (CInt)\n"
     putFoldFun
 
@@ -221,12 +240,14 @@ printEnumF enum = do
 
 main :: IO ()
 main = do
-    content <- lines <$> readFile "/usr/include/pulse/def.h"
+    content <- concatMap lines <$> mapM (readFile . (++) "/usr/include/") files
     let allEnums = map (cNameToType . toCEnum) $ findEnums content
 
     let flags = filter (\(CEnum name _) -> name `elem` hFlags) allEnums
     let enums = filter (\(CEnum name _) -> name `elem` hEnums) allEnums
 
+    let (eFacility, eType) = splitSubscribeEvent allEnums
+
     putHead
-    mapM_ printEnumE enums
+    mapM_ printEnumE (eFacility:eType:enums)
     mapM_ printEnumF flags
