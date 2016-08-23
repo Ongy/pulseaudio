@@ -9,8 +9,13 @@ module Data.Time
     , timeToUS
     , timeFromUS
     , dummyTime
+
     )
 where
+
+
+-- PATime is defined in here, for better hiding :)
+import Data.Time.Internal
 
 import Foreign.Ptr
 import Foreign.Storable
@@ -18,20 +23,6 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc
 
 #include <time.h>
-
--- Seconds and nanoseconds, compare with struct timespec (clock-gettime)
--- I'll make this Word Word, a few bytes more don't hurt that much
-data PATime = PATime Word CLong deriving (Show, Eq, Ord)
-
-instance Storable PATime where
-    sizeOf _ = #{size struct timespec}
-    alignment _ = alignment (undefined :: Word)
-    peek p = PATime
-        <$> #{peek struct timespec, tv_sec}  p
-        <*> #{peek struct timespec, tv_nsec} p
-    poke p (PATime sec nsec) = do
-        #{poke struct timespec, tv_sec} p sec
-        #{poke struct timespec, tv_nsec} p nsec
 
 foreign import ccall unsafe "clock_gettime" clock_gettime :: CInt -> Ptr PATime -> IO CInt
 
@@ -44,9 +35,7 @@ getTime = alloca $ \ptr -> do
     ret <- clock_gettime #{const CLOCK_REALTIME} ptr
     if ret /= 0
        then error "This should not happen, PAs getTime failed"
-       else do
-           time <- peek ptr
-           return time
+       else peek ptr
 
 -- |Add seconds to a 'PATime'
 addSeconds :: Integral a => a -> PATime -> PATime

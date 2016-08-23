@@ -26,6 +26,8 @@ import Data.Bits ((.&.), (.|.))
 import Control.Concurrent.MVar
 
 import Data.Time
+import Data.Time.Internal
+
 
 data PAIOEventFlags
     = PAIOEventNull
@@ -128,13 +130,13 @@ foreign import ccall "wrapper" mkIOSetDestroy :: IOSetDestroy a -> IO (FunPtr (I
 
 {- Time Events -}
 
-type TimeEvCB a = Ptr (PAMainloopApi a) -> StablePtr (PATimeEventW a) -> Ptr PATime -> Ptr Userdata -> IO ()
+type TimeEvCB a = Ptr (PAMainloopApi a) -> StablePtr (PATimeEventW a) -> Ptr PAITime -> Ptr Userdata -> IO ()
 foreign import ccall "dynamic" mkTimeEvCB :: FunPtr (TimeEvCB a) -> (TimeEvCB a)
 
-type TimeNew a = Ptr (PAMainloopApi a) -> Ptr PATime -> FunPtr (TimeEvCB a) -> Ptr Userdata -> IO (StablePtr (PATimeEventW a))
+type TimeNew a = Ptr (PAMainloopApi a) -> Ptr PAITime -> FunPtr (TimeEvCB a) -> Ptr Userdata -> IO (StablePtr (PATimeEventW a))
 foreign import ccall "wrapper" mkTimeNew :: TimeNew a -> IO (FunPtr (TimeNew a))
 
-type TimeRestart a = StablePtr (PATimeEventW a) -> Ptr PATime -> IO ()
+type TimeRestart a = StablePtr (PATimeEventW a) -> Ptr PAITime -> IO ()
 foreign import ccall "wrapper" mkTimeRestart :: TimeRestart a -> IO (FunPtr (TimeRestart a))
 
 type TimeFree a = StablePtr (PATimeEventW a) -> IO ()
@@ -257,15 +259,15 @@ getMainloopApi api = do
         impl <- getMainloopImpl a
         mvar <- newEmptyMVar
         time <- peek timep
-        ret <- timeNew impl time $ \itime -> do
+        ret <- timeNew impl (fromPAI time) $ \itime -> do
             evt <- readMVar mvar
-            with itime $ flip (fun a evt) usr
+            with (toPAI itime) $ flip (fun a evt) usr
         rpt <- newStablePtr $ PATimeEventW ret usr a
         putMVar mvar rpt
         return rpt
     time_restart <- mkTimeRestart $ \ptr timep -> do
         time <- peek timep
-        flip timeRestart time . timeRealHandle =<< deRefStablePtr ptr
+        flip timeRestart (fromPAI time) . timeRealHandle =<< deRefStablePtr ptr
     time_free <- mkTimeFree ((=<<) (timeFree . timeRealHandle) . deRefStablePtr)
     time_set_destroy <- mkTimeSetDestroy $ \ptr fptr -> do
         let fun = mkTimeDestroy fptr

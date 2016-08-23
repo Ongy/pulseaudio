@@ -3,6 +3,12 @@ import Sound.Pulse.Context
 import Sound.Pulse.Mainloop.Simple
 
 import Sound.Pulse.Mainloop
+import Sound.Pulse.Sinkinfo
+
+dumpSinks :: PAMainloop a => a -> PAContext -> IO ()
+dumpSinks impl cxt = getContextSinks cxt fun endf
+    where fun = putStrLn . show
+          endf = quitLoop impl 0
 
 main :: IO ()
 main = do
@@ -16,7 +22,7 @@ main = do
                 putStr "PulseError: "
                 putStrLn =<< getPAContextErrStr ccxt
                 quitLoop impl =<< getPAContextErr ccxt
-            PAContextReady -> quitLoop impl 0
+            PAContextReady -> dumpSinks impl cxt
             _ -> return ()
         )
     connectPAContext cxt Nothing []

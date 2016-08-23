@@ -77,10 +77,13 @@ library
                        ,Sound.Pulse.Mainloop
                        ,Sound.Pulse.Mainloop.Simple
                        ,Data.Time
+                       ,Sound.Pulse.Sinkinfo
+                       ,Sound.Pulse.ChannelPosition
+                       ,Sound.Pulse.SampleSpec
 
   
   -- Modules included in this library but not exported.
-  -- other-modules:       
+  other-modules:        Data.Time.Internal
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
@@ -89,6 +92,7 @@ library
   build-depends:       base >=4.9 && <4.10
                       ,unix
                       ,stm
+                      ,containers
   
   -- Directories containing source files.
   hs-source-dirs:      src

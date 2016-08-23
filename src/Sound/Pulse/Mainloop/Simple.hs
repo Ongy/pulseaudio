@@ -134,6 +134,7 @@ doRun impl = do
         Just x -> do
             now <- getTime
             evt <- readIORef $ timeDeadline x
+            -- putStrLn ("Waiting for: " ++ show (timeToUS (getDiff evt now)))
             return . timeout $ if now > evt
                then 0
                else fromIntegral (timeToUS (getDiff evt now))
