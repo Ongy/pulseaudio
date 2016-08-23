@@ -80,6 +80,7 @@ library
                        ,Sound.Pulse.Sinkinfo
                        ,Sound.Pulse.ChannelPosition
                        ,Sound.Pulse.SampleSpec
+                       ,Sound.Pulse.Subscribe
 
   
   -- Modules included in this library but not exported.

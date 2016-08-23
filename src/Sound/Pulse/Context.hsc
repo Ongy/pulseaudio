@@ -5,6 +5,7 @@ module Sound.Pulse.Context
     ( PAContext
     , PAContextFlags(..)
     , PAContextState(..)
+    , PAContextSuccessCB
 
     , getPAContext
     , connectPAContext
@@ -13,6 +14,7 @@ module Sound.Pulse.Context
     , getPAContextState
     , getPAContextErr
     , getPAContextErrStr
+    , wrapSuccess
     )
 where
 
@@ -77,6 +79,11 @@ instance Storable PAContextState where
     poke p s = poke (castPtr p) (paContextStateToInt s)
     peek p = paIntToContextState <$> peek (castPtr p)
 
+type PAContextSuccessCB a = PAContext -> CInt -> Ptr a -> IO ()
+foreign import ccall "wrapper" mkCSuccess :: PAContextSuccessCB a -> IO (FunPtr (PAContextSuccessCB a))
+
+wrapSuccess :: (Bool -> IO ()) -> IO (FunPtr (PAContextSuccessCB a))
+wrapSuccess fun = mkCSuccess $ \_ b _ -> fun (b /= 0)
 
 foreign import ccall "pa_context_new" pa_context_new :: Ptr a -> CString -> IO PAContext
 

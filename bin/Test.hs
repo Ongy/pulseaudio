@@ -4,11 +4,14 @@ import Sound.Pulse.Mainloop.Simple
 
 import Sound.Pulse.Mainloop
 import Sound.Pulse.Sinkinfo
+import Sound.Pulse.Subscribe
 
 dumpSinks :: PAMainloop a => a -> PAContext -> IO ()
-dumpSinks impl cxt = getContextSinks cxt fun endf
+dumpSinks _ cxt = getContextSinks cxt fun endf
     where fun = putStrLn . show
-          endf = quitLoop impl 0
+          -- endf = quitLoop impl 0
+          endf = subscribeEvents cxt [SubscriptionMaskAll] subFun
+          subFun x y = putStrLn ("Event: " ++ show x ++ " with idx: " ++ show y)
 
 main :: IO ()
 main = do

@@ -157,7 +157,7 @@ instance Storable Sinkinfo where
            size :: Word8 <- #{peek struct pa_sink_info, n_formats} p
            ptr :: Ptr (Ptr FormatInfo) <- #{peek struct pa_sink_info, formats} p
            mapM (peekElemOff ptr . fromIntegral) [0.. size - 1]
-    poke _ (Sinkinfo {..}) = undefined
+    poke _ (Sinkinfo {..}) = error "PA: Currently no sinkinfo poke"
 
 data Userdata
 data PAOperation -- < TODO!!
@@ -173,3 +173,4 @@ getContextSinks cxt fun endf = do
                                               else endf
     _ <- pa_context_get_sink_info_list cxt funP nullPtr
     return ()
+
