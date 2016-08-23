@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-overlapping-patterns #-}
 module Sound.Pulse.Def
 where
 
@@ -38,20 +39,18 @@ subscriptionEventFacilityToInt SubscriptionEventCard = #{const PA_SUBSCRIPTION_E
 subscriptionEventFacilityToInt SubscriptionEventFacilityMask = #{const PA_SUBSCRIPTION_EVENT_FACILITY_MASK}
 
 subscriptionEventFacilityFromInt :: CInt -> SubscriptionEventFacility
-subscriptionEventFacilityFromInt i
-    | i == #{const PA_SUBSCRIPTION_EVENT_SINK} = SubscriptionEventSink
-    | i == #{const PA_SUBSCRIPTION_EVENT_SOURCE} = SubscriptionEventSource
-    | i == #{const PA_SUBSCRIPTION_EVENT_SINK_INPUT} = SubscriptionEventSinkInput
-    | i == #{const PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT} = SubscriptionEventSourceOutput
-    | i == #{const PA_SUBSCRIPTION_EVENT_MODULE} = SubscriptionEventModule
-    | i == #{const PA_SUBSCRIPTION_EVENT_CLIENT} = SubscriptionEventClient
-    | i == #{const PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE} = SubscriptionEventSampleCache
-    | i == #{const PA_SUBSCRIPTION_EVENT_SERVER} = SubscriptionEventServer
-    | i == #{const PA_SUBSCRIPTION_EVENT_AUTOLOAD} = SubscriptionEventAutoload
-    | i == #{const PA_SUBSCRIPTION_EVENT_CARD} = SubscriptionEventCard
-    | i == #{const PA_SUBSCRIPTION_EVENT_FACILITY_MASK} = SubscriptionEventFacilityMask
-    | otherwise = error ("PA: Unexpeced value @subscriptionEventFacilityFromInt" ++ show i)
-
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SINK}) = SubscriptionEventSink
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SOURCE}) = SubscriptionEventSource
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SINK_INPUT}) = SubscriptionEventSinkInput
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT}) = SubscriptionEventSourceOutput
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_MODULE}) = SubscriptionEventModule
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_CLIENT}) = SubscriptionEventClient
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE}) = SubscriptionEventSampleCache
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_SERVER}) = SubscriptionEventServer
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_AUTOLOAD}) = SubscriptionEventAutoload
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_CARD}) = SubscriptionEventCard
+subscriptionEventFacilityFromInt (#{const PA_SUBSCRIPTION_EVENT_FACILITY_MASK}) = SubscriptionEventFacilityMask
+subscriptionEventFacilityFromInt x = error ("PA unexped value @subscriptionEventFacilityFromInt:" ++ show x)
 data SubscriptionEventType
     = SubscriptionEventNew
     | SubscriptionEventChange
@@ -66,13 +65,11 @@ subscriptionEventTypeToInt SubscriptionEventRemove = #{const PA_SUBSCRIPTION_EVE
 subscriptionEventTypeToInt SubscriptionEventTypeMask = #{const PA_SUBSCRIPTION_EVENT_TYPE_MASK}
 
 subscriptionEventTypeFromInt :: CInt -> SubscriptionEventType
-subscriptionEventTypeFromInt i
-    | i == #{const PA_SUBSCRIPTION_EVENT_NEW} = SubscriptionEventNew
-    | i == #{const PA_SUBSCRIPTION_EVENT_CHANGE} = SubscriptionEventChange
-    | i == #{const PA_SUBSCRIPTION_EVENT_REMOVE} = SubscriptionEventRemove
-    | i == #{const PA_SUBSCRIPTION_EVENT_TYPE_MASK} = SubscriptionEventTypeMask
-    | otherwise = error ("PA: Unexpeced value @subscriptionEventTypeFromInt" ++ show i)
-
+subscriptionEventTypeFromInt (#{const PA_SUBSCRIPTION_EVENT_NEW}) = SubscriptionEventNew
+subscriptionEventTypeFromInt (#{const PA_SUBSCRIPTION_EVENT_CHANGE}) = SubscriptionEventChange
+subscriptionEventTypeFromInt (#{const PA_SUBSCRIPTION_EVENT_REMOVE}) = SubscriptionEventRemove
+subscriptionEventTypeFromInt (#{const PA_SUBSCRIPTION_EVENT_TYPE_MASK}) = SubscriptionEventTypeMask
+subscriptionEventTypeFromInt x = error ("PA unexped value @subscriptionEventTypeFromInt:" ++ show x)
 data ContextState
     = ContextUnconnected
     | ContextConnecting
@@ -93,16 +90,14 @@ contextStateToInt ContextFailed = #{const PA_CONTEXT_FAILED}
 contextStateToInt ContextTerminated = #{const PA_CONTEXT_TERMINATED}
 
 contextStateFromInt :: CInt -> ContextState
-contextStateFromInt i
-    | i == #{const PA_CONTEXT_UNCONNECTED} = ContextUnconnected
-    | i == #{const PA_CONTEXT_CONNECTING} = ContextConnecting
-    | i == #{const PA_CONTEXT_AUTHORIZING} = ContextAuthorizing
-    | i == #{const PA_CONTEXT_SETTING_NAME} = ContextSettingName
-    | i == #{const PA_CONTEXT_READY} = ContextReady
-    | i == #{const PA_CONTEXT_FAILED} = ContextFailed
-    | i == #{const PA_CONTEXT_TERMINATED} = ContextTerminated
-    | otherwise = error ("PA: Unexpeced value @contextStateFromInt" ++ show i)
-
+contextStateFromInt (#{const PA_CONTEXT_UNCONNECTED}) = ContextUnconnected
+contextStateFromInt (#{const PA_CONTEXT_CONNECTING}) = ContextConnecting
+contextStateFromInt (#{const PA_CONTEXT_AUTHORIZING}) = ContextAuthorizing
+contextStateFromInt (#{const PA_CONTEXT_SETTING_NAME}) = ContextSettingName
+contextStateFromInt (#{const PA_CONTEXT_READY}) = ContextReady
+contextStateFromInt (#{const PA_CONTEXT_FAILED}) = ContextFailed
+contextStateFromInt (#{const PA_CONTEXT_TERMINATED}) = ContextTerminated
+contextStateFromInt x = error ("PA unexped value @contextStateFromInt:" ++ show x)
 data StreamState
     = StreamUnconnected
     | StreamCreating
@@ -119,14 +114,12 @@ streamStateToInt StreamFailed = #{const PA_STREAM_FAILED}
 streamStateToInt StreamTerminated = #{const PA_STREAM_TERMINATED}
 
 streamStateFromInt :: CInt -> StreamState
-streamStateFromInt i
-    | i == #{const PA_STREAM_UNCONNECTED} = StreamUnconnected
-    | i == #{const PA_STREAM_CREATING} = StreamCreating
-    | i == #{const PA_STREAM_READY} = StreamReady
-    | i == #{const PA_STREAM_FAILED} = StreamFailed
-    | i == #{const PA_STREAM_TERMINATED} = StreamTerminated
-    | otherwise = error ("PA: Unexpeced value @streamStateFromInt" ++ show i)
-
+streamStateFromInt (#{const PA_STREAM_UNCONNECTED}) = StreamUnconnected
+streamStateFromInt (#{const PA_STREAM_CREATING}) = StreamCreating
+streamStateFromInt (#{const PA_STREAM_READY}) = StreamReady
+streamStateFromInt (#{const PA_STREAM_FAILED}) = StreamFailed
+streamStateFromInt (#{const PA_STREAM_TERMINATED}) = StreamTerminated
+streamStateFromInt x = error ("PA unexped value @streamStateFromInt:" ++ show x)
 data OperationState
     = OperationRunning
     | OperationDone
@@ -139,12 +132,10 @@ operationStateToInt OperationDone = #{const PA_OPERATION_DONE}
 operationStateToInt OperationCancelled = #{const PA_OPERATION_CANCELLED}
 
 operationStateFromInt :: CInt -> OperationState
-operationStateFromInt i
-    | i == #{const PA_OPERATION_RUNNING} = OperationRunning
-    | i == #{const PA_OPERATION_DONE} = OperationDone
-    | i == #{const PA_OPERATION_CANCELLED} = OperationCancelled
-    | otherwise = error ("PA: Unexpeced value @operationStateFromInt" ++ show i)
-
+operationStateFromInt (#{const PA_OPERATION_RUNNING}) = OperationRunning
+operationStateFromInt (#{const PA_OPERATION_DONE}) = OperationDone
+operationStateFromInt (#{const PA_OPERATION_CANCELLED}) = OperationCancelled
+operationStateFromInt x = error ("PA unexped value @operationStateFromInt:" ++ show x)
 data Direction
     = DirectionOutput
     | DirectionInput
@@ -155,11 +146,9 @@ directionToInt DirectionOutput = #{const PA_DIRECTION_OUTPUT}
 directionToInt DirectionInput = #{const PA_DIRECTION_INPUT}
 
 directionFromInt :: CInt -> Direction
-directionFromInt i
-    | i == #{const PA_DIRECTION_OUTPUT} = DirectionOutput
-    | i == #{const PA_DIRECTION_INPUT} = DirectionInput
-    | otherwise = error ("PA: Unexpeced value @directionFromInt" ++ show i)
-
+directionFromInt (#{const PA_DIRECTION_OUTPUT}) = DirectionOutput
+directionFromInt (#{const PA_DIRECTION_INPUT}) = DirectionInput
+directionFromInt x = error ("PA unexped value @directionFromInt:" ++ show x)
 data ErrorCode
     = Ok
     | ErrAccess
@@ -222,37 +211,35 @@ errorCodeToInt ErrBusy = #{const PA_ERR_BUSY}
 errorCodeToInt ErrMax = #{const PA_ERR_MAX}
 
 errorCodeFromInt :: CInt -> ErrorCode
-errorCodeFromInt i
-    | i == #{const PA_OK} = Ok
-    | i == #{const PA_ERR_ACCESS} = ErrAccess
-    | i == #{const PA_ERR_COMMAND} = ErrCommand
-    | i == #{const PA_ERR_INVALID} = ErrInvalid
-    | i == #{const PA_ERR_EXIST} = ErrExist
-    | i == #{const PA_ERR_NOENTITY} = ErrNoentity
-    | i == #{const PA_ERR_CONNECTIONREFUSED} = ErrConnectionrefused
-    | i == #{const PA_ERR_PROTOCOL} = ErrProtocol
-    | i == #{const PA_ERR_TIMEOUT} = ErrTimeout
-    | i == #{const PA_ERR_AUTHKEY} = ErrAuthkey
-    | i == #{const PA_ERR_INTERNAL} = ErrInternal
-    | i == #{const PA_ERR_CONNECTIONTERMINATED} = ErrConnectionterminated
-    | i == #{const PA_ERR_KILLED} = ErrKilled
-    | i == #{const PA_ERR_INVALIDSERVER} = ErrInvalidserver
-    | i == #{const PA_ERR_MODINITFAILED} = ErrModinitfailed
-    | i == #{const PA_ERR_BADSTATE} = ErrBadstate
-    | i == #{const PA_ERR_NODATA} = ErrNodata
-    | i == #{const PA_ERR_VERSION} = ErrVersion
-    | i == #{const PA_ERR_TOOLARGE} = ErrToolarge
-    | i == #{const PA_ERR_NOTSUPPORTED} = ErrNotsupported
-    | i == #{const PA_ERR_UNKNOWN} = ErrUnknown
-    | i == #{const PA_ERR_NOEXTENSION} = ErrNoextension
-    | i == #{const PA_ERR_OBSOLETE} = ErrObsolete
-    | i == #{const PA_ERR_NOTIMPLEMENTED} = ErrNotimplemented
-    | i == #{const PA_ERR_FORKED} = ErrForked
-    | i == #{const PA_ERR_IO} = ErrIo
-    | i == #{const PA_ERR_BUSY} = ErrBusy
-    | i == #{const PA_ERR_MAX} = ErrMax
-    | otherwise = error ("PA: Unexpeced value @errorCodeFromInt" ++ show i)
-
+errorCodeFromInt (#{const PA_OK}) = Ok
+errorCodeFromInt (#{const PA_ERR_ACCESS}) = ErrAccess
+errorCodeFromInt (#{const PA_ERR_COMMAND}) = ErrCommand
+errorCodeFromInt (#{const PA_ERR_INVALID}) = ErrInvalid
+errorCodeFromInt (#{const PA_ERR_EXIST}) = ErrExist
+errorCodeFromInt (#{const PA_ERR_NOENTITY}) = ErrNoentity
+errorCodeFromInt (#{const PA_ERR_CONNECTIONREFUSED}) = ErrConnectionrefused
+errorCodeFromInt (#{const PA_ERR_PROTOCOL}) = ErrProtocol
+errorCodeFromInt (#{const PA_ERR_TIMEOUT}) = ErrTimeout
+errorCodeFromInt (#{const PA_ERR_AUTHKEY}) = ErrAuthkey
+errorCodeFromInt (#{const PA_ERR_INTERNAL}) = ErrInternal
+errorCodeFromInt (#{const PA_ERR_CONNECTIONTERMINATED}) = ErrConnectionterminated
+errorCodeFromInt (#{const PA_ERR_KILLED}) = ErrKilled
+errorCodeFromInt (#{const PA_ERR_INVALIDSERVER}) = ErrInvalidserver
+errorCodeFromInt (#{const PA_ERR_MODINITFAILED}) = ErrModinitfailed
+errorCodeFromInt (#{const PA_ERR_BADSTATE}) = ErrBadstate
+errorCodeFromInt (#{const PA_ERR_NODATA}) = ErrNodata
+errorCodeFromInt (#{const PA_ERR_VERSION}) = ErrVersion
+errorCodeFromInt (#{const PA_ERR_TOOLARGE}) = ErrToolarge
+errorCodeFromInt (#{const PA_ERR_NOTSUPPORTED}) = ErrNotsupported
+errorCodeFromInt (#{const PA_ERR_UNKNOWN}) = ErrUnknown
+errorCodeFromInt (#{const PA_ERR_NOEXTENSION}) = ErrNoextension
+errorCodeFromInt (#{const PA_ERR_OBSOLETE}) = ErrObsolete
+errorCodeFromInt (#{const PA_ERR_NOTIMPLEMENTED}) = ErrNotimplemented
+errorCodeFromInt (#{const PA_ERR_FORKED}) = ErrForked
+errorCodeFromInt (#{const PA_ERR_IO}) = ErrIo
+errorCodeFromInt (#{const PA_ERR_BUSY}) = ErrBusy
+errorCodeFromInt (#{const PA_ERR_MAX}) = ErrMax
+errorCodeFromInt x = error ("PA unexped value @errorCodeFromInt:" ++ show x)
 data SeekMode
     = SeekRelative
     | SeekAbsolute
@@ -267,13 +254,11 @@ seekModeToInt SeekRelativeOnRead = #{const PA_SEEK_RELATIVE_ON_READ}
 seekModeToInt SeekRelativeEnd = #{const PA_SEEK_RELATIVE_END}
 
 seekModeFromInt :: CInt -> SeekMode
-seekModeFromInt i
-    | i == #{const PA_SEEK_RELATIVE} = SeekRelative
-    | i == #{const PA_SEEK_ABSOLUTE} = SeekAbsolute
-    | i == #{const PA_SEEK_RELATIVE_ON_READ} = SeekRelativeOnRead
-    | i == #{const PA_SEEK_RELATIVE_END} = SeekRelativeEnd
-    | otherwise = error ("PA: Unexpeced value @seekModeFromInt" ++ show i)
-
+seekModeFromInt (#{const PA_SEEK_RELATIVE}) = SeekRelative
+seekModeFromInt (#{const PA_SEEK_ABSOLUTE}) = SeekAbsolute
+seekModeFromInt (#{const PA_SEEK_RELATIVE_ON_READ}) = SeekRelativeOnRead
+seekModeFromInt (#{const PA_SEEK_RELATIVE_END}) = SeekRelativeEnd
+seekModeFromInt x = error ("PA unexped value @seekModeFromInt:" ++ show x)
 data SinkState
     = SinkInvalidState
     | SinkRunning
@@ -292,15 +277,13 @@ sinkStateToInt SinkInit = #{const PA_SINK_INIT}
 sinkStateToInt SinkUnlinked = #{const PA_SINK_UNLINKED}
 
 sinkStateFromInt :: CInt -> SinkState
-sinkStateFromInt i
-    | i == #{const PA_SINK_INVALID_STATE} = SinkInvalidState
-    | i == #{const PA_SINK_RUNNING} = SinkRunning
-    | i == #{const PA_SINK_IDLE} = SinkIdle
-    | i == #{const PA_SINK_SUSPENDED} = SinkSuspended
-    | i == #{const PA_SINK_INIT} = SinkInit
-    | i == #{const PA_SINK_UNLINKED} = SinkUnlinked
-    | otherwise = error ("PA: Unexpeced value @sinkStateFromInt" ++ show i)
-
+sinkStateFromInt (#{const PA_SINK_INVALID_STATE}) = SinkInvalidState
+sinkStateFromInt (#{const PA_SINK_RUNNING}) = SinkRunning
+sinkStateFromInt (#{const PA_SINK_IDLE}) = SinkIdle
+sinkStateFromInt (#{const PA_SINK_SUSPENDED}) = SinkSuspended
+sinkStateFromInt (#{const PA_SINK_INIT}) = SinkInit
+sinkStateFromInt (#{const PA_SINK_UNLINKED}) = SinkUnlinked
+sinkStateFromInt x = error ("PA unexped value @sinkStateFromInt:" ++ show x)
 data SourceState
     = SourceInvalidState
     | SourceRunning
@@ -319,15 +302,13 @@ sourceStateToInt SourceInit = #{const PA_SOURCE_INIT}
 sourceStateToInt SourceUnlinked = #{const PA_SOURCE_UNLINKED}
 
 sourceStateFromInt :: CInt -> SourceState
-sourceStateFromInt i
-    | i == #{const PA_SOURCE_INVALID_STATE} = SourceInvalidState
-    | i == #{const PA_SOURCE_RUNNING} = SourceRunning
-    | i == #{const PA_SOURCE_IDLE} = SourceIdle
-    | i == #{const PA_SOURCE_SUSPENDED} = SourceSuspended
-    | i == #{const PA_SOURCE_INIT} = SourceInit
-    | i == #{const PA_SOURCE_UNLINKED} = SourceUnlinked
-    | otherwise = error ("PA: Unexpeced value @sourceStateFromInt" ++ show i)
-
+sourceStateFromInt (#{const PA_SOURCE_INVALID_STATE}) = SourceInvalidState
+sourceStateFromInt (#{const PA_SOURCE_RUNNING}) = SourceRunning
+sourceStateFromInt (#{const PA_SOURCE_IDLE}) = SourceIdle
+sourceStateFromInt (#{const PA_SOURCE_SUSPENDED}) = SourceSuspended
+sourceStateFromInt (#{const PA_SOURCE_INIT}) = SourceInit
+sourceStateFromInt (#{const PA_SOURCE_UNLINKED}) = SourceUnlinked
+sourceStateFromInt x = error ("PA unexped value @sourceStateFromInt:" ++ show x)
 data PortAvailable
     = PortAvailableUnknown
     | PortAvailableNo
@@ -340,12 +321,10 @@ portAvailableToInt PortAvailableNo = #{const PA_PORT_AVAILABLE_NO}
 portAvailableToInt PortAvailableYes = #{const PA_PORT_AVAILABLE_YES}
 
 portAvailableFromInt :: CInt -> PortAvailable
-portAvailableFromInt i
-    | i == #{const PA_PORT_AVAILABLE_UNKNOWN} = PortAvailableUnknown
-    | i == #{const PA_PORT_AVAILABLE_NO} = PortAvailableNo
-    | i == #{const PA_PORT_AVAILABLE_YES} = PortAvailableYes
-    | otherwise = error ("PA: Unexpeced value @portAvailableFromInt" ++ show i)
-
+portAvailableFromInt (#{const PA_PORT_AVAILABLE_UNKNOWN}) = PortAvailableUnknown
+portAvailableFromInt (#{const PA_PORT_AVAILABLE_NO}) = PortAvailableNo
+portAvailableFromInt (#{const PA_PORT_AVAILABLE_YES}) = PortAvailableYes
+portAvailableFromInt x = error ("PA unexped value @portAvailableFromInt:" ++ show x)
 data ChannelPosition
     = ChannelPositionInvalid
     | ChannelPositionMono
@@ -466,66 +445,64 @@ channelPositionToInt ChannelPositionTopRearCenter = #{const PA_CHANNEL_POSITION_
 channelPositionToInt ChannelPositionMax = #{const PA_CHANNEL_POSITION_MAX}
 
 channelPositionFromInt :: CInt -> ChannelPosition
-channelPositionFromInt i
-    | i == #{const PA_CHANNEL_POSITION_INVALID} = ChannelPositionInvalid
-    | i == #{const PA_CHANNEL_POSITION_MONO} = ChannelPositionMono
-    | i == #{const PA_CHANNEL_POSITION_FRONT_LEFT} = ChannelPositionFrontLeft
-    | i == #{const PA_CHANNEL_POSITION_FRONT_RIGHT} = ChannelPositionFrontRight
-    | i == #{const PA_CHANNEL_POSITION_FRONT_CENTER} = ChannelPositionFrontCenter
-    | i == #{const PA_CHANNEL_POSITION_LEFT} = ChannelPositionLeft
-    | i == #{const PA_CHANNEL_POSITION_RIGHT} = ChannelPositionRight
-    | i == #{const PA_CHANNEL_POSITION_CENTER} = ChannelPositionCenter
-    | i == #{const PA_CHANNEL_POSITION_REAR_CENTER} = ChannelPositionRearCenter
-    | i == #{const PA_CHANNEL_POSITION_REAR_LEFT} = ChannelPositionRearLeft
-    | i == #{const PA_CHANNEL_POSITION_REAR_RIGHT} = ChannelPositionRearRight
-    | i == #{const PA_CHANNEL_POSITION_LFE} = ChannelPositionLfe
-    | i == #{const PA_CHANNEL_POSITION_SUBWOOFER} = ChannelPositionSubwoofer
-    | i == #{const PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER} = ChannelPositionFrontLeftOfCenter
-    | i == #{const PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER} = ChannelPositionFrontRightOfCenter
-    | i == #{const PA_CHANNEL_POSITION_SIDE_LEFT} = ChannelPositionSideLeft
-    | i == #{const PA_CHANNEL_POSITION_SIDE_RIGHT} = ChannelPositionSideRight
-    | i == #{const PA_CHANNEL_POSITION_AUX0} = ChannelPositionAux0
-    | i == #{const PA_CHANNEL_POSITION_AUX1} = ChannelPositionAux1
-    | i == #{const PA_CHANNEL_POSITION_AUX2} = ChannelPositionAux2
-    | i == #{const PA_CHANNEL_POSITION_AUX3} = ChannelPositionAux3
-    | i == #{const PA_CHANNEL_POSITION_AUX4} = ChannelPositionAux4
-    | i == #{const PA_CHANNEL_POSITION_AUX5} = ChannelPositionAux5
-    | i == #{const PA_CHANNEL_POSITION_AUX6} = ChannelPositionAux6
-    | i == #{const PA_CHANNEL_POSITION_AUX7} = ChannelPositionAux7
-    | i == #{const PA_CHANNEL_POSITION_AUX8} = ChannelPositionAux8
-    | i == #{const PA_CHANNEL_POSITION_AUX9} = ChannelPositionAux9
-    | i == #{const PA_CHANNEL_POSITION_AUX10} = ChannelPositionAux10
-    | i == #{const PA_CHANNEL_POSITION_AUX11} = ChannelPositionAux11
-    | i == #{const PA_CHANNEL_POSITION_AUX12} = ChannelPositionAux12
-    | i == #{const PA_CHANNEL_POSITION_AUX13} = ChannelPositionAux13
-    | i == #{const PA_CHANNEL_POSITION_AUX14} = ChannelPositionAux14
-    | i == #{const PA_CHANNEL_POSITION_AUX15} = ChannelPositionAux15
-    | i == #{const PA_CHANNEL_POSITION_AUX16} = ChannelPositionAux16
-    | i == #{const PA_CHANNEL_POSITION_AUX17} = ChannelPositionAux17
-    | i == #{const PA_CHANNEL_POSITION_AUX18} = ChannelPositionAux18
-    | i == #{const PA_CHANNEL_POSITION_AUX19} = ChannelPositionAux19
-    | i == #{const PA_CHANNEL_POSITION_AUX20} = ChannelPositionAux20
-    | i == #{const PA_CHANNEL_POSITION_AUX21} = ChannelPositionAux21
-    | i == #{const PA_CHANNEL_POSITION_AUX22} = ChannelPositionAux22
-    | i == #{const PA_CHANNEL_POSITION_AUX23} = ChannelPositionAux23
-    | i == #{const PA_CHANNEL_POSITION_AUX24} = ChannelPositionAux24
-    | i == #{const PA_CHANNEL_POSITION_AUX25} = ChannelPositionAux25
-    | i == #{const PA_CHANNEL_POSITION_AUX26} = ChannelPositionAux26
-    | i == #{const PA_CHANNEL_POSITION_AUX27} = ChannelPositionAux27
-    | i == #{const PA_CHANNEL_POSITION_AUX28} = ChannelPositionAux28
-    | i == #{const PA_CHANNEL_POSITION_AUX29} = ChannelPositionAux29
-    | i == #{const PA_CHANNEL_POSITION_AUX30} = ChannelPositionAux30
-    | i == #{const PA_CHANNEL_POSITION_AUX31} = ChannelPositionAux31
-    | i == #{const PA_CHANNEL_POSITION_TOP_CENTER} = ChannelPositionTopCenter
-    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_LEFT} = ChannelPositionTopFrontLeft
-    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_RIGHT} = ChannelPositionTopFrontRight
-    | i == #{const PA_CHANNEL_POSITION_TOP_FRONT_CENTER} = ChannelPositionTopFrontCenter
-    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_LEFT} = ChannelPositionTopRearLeft
-    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_RIGHT} = ChannelPositionTopRearRight
-    | i == #{const PA_CHANNEL_POSITION_TOP_REAR_CENTER} = ChannelPositionTopRearCenter
-    | i == #{const PA_CHANNEL_POSITION_MAX} = ChannelPositionMax
-    | otherwise = error ("PA: Unexpeced value @channelPositionFromInt" ++ show i)
-
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_INVALID}) = ChannelPositionInvalid
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_MONO}) = ChannelPositionMono
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_FRONT_LEFT}) = ChannelPositionFrontLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_FRONT_RIGHT}) = ChannelPositionFrontRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_FRONT_CENTER}) = ChannelPositionFrontCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_LEFT}) = ChannelPositionLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_RIGHT}) = ChannelPositionRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_CENTER}) = ChannelPositionCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_REAR_CENTER}) = ChannelPositionRearCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_REAR_LEFT}) = ChannelPositionRearLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_REAR_RIGHT}) = ChannelPositionRearRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_LFE}) = ChannelPositionLfe
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_SUBWOOFER}) = ChannelPositionSubwoofer
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER}) = ChannelPositionFrontLeftOfCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER}) = ChannelPositionFrontRightOfCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_SIDE_LEFT}) = ChannelPositionSideLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_SIDE_RIGHT}) = ChannelPositionSideRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX0}) = ChannelPositionAux0
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX1}) = ChannelPositionAux1
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX2}) = ChannelPositionAux2
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX3}) = ChannelPositionAux3
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX4}) = ChannelPositionAux4
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX5}) = ChannelPositionAux5
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX6}) = ChannelPositionAux6
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX7}) = ChannelPositionAux7
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX8}) = ChannelPositionAux8
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX9}) = ChannelPositionAux9
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX10}) = ChannelPositionAux10
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX11}) = ChannelPositionAux11
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX12}) = ChannelPositionAux12
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX13}) = ChannelPositionAux13
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX14}) = ChannelPositionAux14
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX15}) = ChannelPositionAux15
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX16}) = ChannelPositionAux16
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX17}) = ChannelPositionAux17
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX18}) = ChannelPositionAux18
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX19}) = ChannelPositionAux19
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX20}) = ChannelPositionAux20
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX21}) = ChannelPositionAux21
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX22}) = ChannelPositionAux22
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX23}) = ChannelPositionAux23
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX24}) = ChannelPositionAux24
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX25}) = ChannelPositionAux25
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX26}) = ChannelPositionAux26
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX27}) = ChannelPositionAux27
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX28}) = ChannelPositionAux28
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX29}) = ChannelPositionAux29
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX30}) = ChannelPositionAux30
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_AUX31}) = ChannelPositionAux31
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_CENTER}) = ChannelPositionTopCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_FRONT_LEFT}) = ChannelPositionTopFrontLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_FRONT_RIGHT}) = ChannelPositionTopFrontRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_FRONT_CENTER}) = ChannelPositionTopFrontCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_REAR_LEFT}) = ChannelPositionTopRearLeft
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_REAR_RIGHT}) = ChannelPositionTopRearRight
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_TOP_REAR_CENTER}) = ChannelPositionTopRearCenter
+channelPositionFromInt (#{const PA_CHANNEL_POSITION_MAX}) = ChannelPositionMax
+channelPositionFromInt x = error ("PA unexped value @channelPositionFromInt:" ++ show x)
 data ChannelMapDef
     = ChannelMapAiff
     | ChannelMapAlsa
@@ -546,16 +523,14 @@ channelMapDefToInt ChannelMapDefMax = #{const PA_CHANNEL_MAP_DEF_MAX}
 channelMapDefToInt ChannelMapDefault = #{const PA_CHANNEL_MAP_DEFAULT}
 
 channelMapDefFromInt :: CInt -> ChannelMapDef
-channelMapDefFromInt i
-    | i == #{const PA_CHANNEL_MAP_AIFF} = ChannelMapAiff
-    | i == #{const PA_CHANNEL_MAP_ALSA} = ChannelMapAlsa
-    | i == #{const PA_CHANNEL_MAP_AUX} = ChannelMapAux
-    | i == #{const PA_CHANNEL_MAP_WAVEEX} = ChannelMapWaveex
-    | i == #{const PA_CHANNEL_MAP_OSS} = ChannelMapOss
-    | i == #{const PA_CHANNEL_MAP_DEF_MAX} = ChannelMapDefMax
-    | i == #{const PA_CHANNEL_MAP_DEFAULT} = ChannelMapDefault
-    | otherwise = error ("PA: Unexpeced value @channelMapDefFromInt" ++ show i)
-
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_AIFF}) = ChannelMapAiff
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_ALSA}) = ChannelMapAlsa
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_AUX}) = ChannelMapAux
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_WAVEEX}) = ChannelMapWaveex
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_OSS}) = ChannelMapOss
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_DEF_MAX}) = ChannelMapDefMax
+channelMapDefFromInt (#{const PA_CHANNEL_MAP_DEFAULT}) = ChannelMapDefault
+channelMapDefFromInt x = error ("PA unexped value @channelMapDefFromInt:" ++ show x)
 data SampleFormat
     = SampleU8
     | SampleAlaw
@@ -592,24 +567,22 @@ sampleFormatToInt SampleMax = #{const PA_SAMPLE_MAX}
 sampleFormatToInt SampleInvalid = #{const PA_SAMPLE_INVALID}
 
 sampleFormatFromInt :: CInt -> SampleFormat
-sampleFormatFromInt i
-    | i == #{const PA_SAMPLE_U8} = SampleU8
-    | i == #{const PA_SAMPLE_ALAW} = SampleAlaw
-    | i == #{const PA_SAMPLE_ULAW} = SampleUlaw
-    | i == #{const PA_SAMPLE_S16LE} = SampleS16le
-    | i == #{const PA_SAMPLE_S16BE} = SampleS16be
-    | i == #{const PA_SAMPLE_FLOAT32LE} = SampleFloat32le
-    | i == #{const PA_SAMPLE_FLOAT32BE} = SampleFloat32be
-    | i == #{const PA_SAMPLE_S32LE} = SampleS32le
-    | i == #{const PA_SAMPLE_S32BE} = SampleS32be
-    | i == #{const PA_SAMPLE_S24LE} = SampleS24le
-    | i == #{const PA_SAMPLE_S24BE} = SampleS24be
-    | i == #{const PA_SAMPLE_S24_32LE} = SampleS2432le
-    | i == #{const PA_SAMPLE_S24_32BE} = SampleS2432be
-    | i == #{const PA_SAMPLE_MAX} = SampleMax
-    | i == #{const PA_SAMPLE_INVALID} = SampleInvalid
-    | otherwise = error ("PA: Unexpeced value @sampleFormatFromInt" ++ show i)
-
+sampleFormatFromInt (#{const PA_SAMPLE_U8}) = SampleU8
+sampleFormatFromInt (#{const PA_SAMPLE_ALAW}) = SampleAlaw
+sampleFormatFromInt (#{const PA_SAMPLE_ULAW}) = SampleUlaw
+sampleFormatFromInt (#{const PA_SAMPLE_S16LE}) = SampleS16le
+sampleFormatFromInt (#{const PA_SAMPLE_S16BE}) = SampleS16be
+sampleFormatFromInt (#{const PA_SAMPLE_FLOAT32LE}) = SampleFloat32le
+sampleFormatFromInt (#{const PA_SAMPLE_FLOAT32BE}) = SampleFloat32be
+sampleFormatFromInt (#{const PA_SAMPLE_S32LE}) = SampleS32le
+sampleFormatFromInt (#{const PA_SAMPLE_S32BE}) = SampleS32be
+sampleFormatFromInt (#{const PA_SAMPLE_S24LE}) = SampleS24le
+sampleFormatFromInt (#{const PA_SAMPLE_S24BE}) = SampleS24be
+sampleFormatFromInt (#{const PA_SAMPLE_S24_32LE}) = SampleS2432le
+sampleFormatFromInt (#{const PA_SAMPLE_S24_32BE}) = SampleS2432be
+sampleFormatFromInt (#{const PA_SAMPLE_MAX}) = SampleMax
+sampleFormatFromInt (#{const PA_SAMPLE_INVALID}) = SampleInvalid
+sampleFormatFromInt x = error ("PA unexped value @sampleFormatFromInt:" ++ show x)
 data ContextFlags
     = ContextNoflags
     | ContextNoautospawn

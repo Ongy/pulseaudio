@@ -8,9 +8,6 @@ module Sound.Pulse.Subscribe
     )
 where
 
--- ToInts commented out, because they will never be used (for now)
-#include <pulse/subscribe.h>
-
 import Sound.Pulse.Operation
 import Data.Word (Word32)
 import Data.Bits ((.&.))

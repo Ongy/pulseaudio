@@ -157,25 +157,25 @@ printToIntF en@(CEnum name@(x:xs) _) = do
 printFromIntE :: CEnum -> IO ()
 printFromIntE (CEnum name@(x:xs) args) = do
     putType
-    putName
-    putStrLn " i"
     mapM_ (\arg -> do
-            putStr "    | i == #{const "
+            putName
+            putStr " (#{const "
             putStr arg
-            putStr "} = "
+            putStr "}) = "
             putStrLn (cNameToConstructor arg)
           ) args
-    putStr "    | otherwise = error (\"PA: Unexpeced value @"
     putName
-    putStrLn "\" ++ show i)\n"
+    putStr " x = error (\"PA unexped value @"
+    putName
+    putStrLn ":\" ++ show x)"
     where putType = do
             putName
             putStr " :: CInt -> "
             putStrLn name
           putName = do
-              putChar (toLower x)
-              putStr xs
-              putStr "FromInt"
+            putChar (toLower x)
+            putStr xs
+            putStr "FromInt"
 
 printFromIntF :: CEnum -> IO ()
 printFromIntF (CEnum name@(x:xs) args) = do
@@ -219,6 +219,7 @@ putFoldFun = do
 
 putHead :: IO ()
 putHead = do
+    putStrLn "{-# OPTIONS -fno-warn-overlapping-patterns #-}"
     putStrLn "module Sound.Pulse.Def"
     putStrLn "where\n"
     mapM_ (\file -> putStrLn ("#include <" ++ file ++ ">")) files
