@@ -81,10 +81,14 @@ library
                        ,Sound.Pulse.ChannelPosition
                        ,Sound.Pulse.SampleSpec
                        ,Sound.Pulse.Subscribe
+                       ,Sound.Pulse.Operation
 
   
   -- Modules included in this library but not exported.
   other-modules:        Data.Time.Internal
+                       ,Sound.Pulse.Userdata
+  
+
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    

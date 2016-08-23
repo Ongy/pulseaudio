@@ -3,6 +3,8 @@
 module Sound.Pulse.Sinkinfo
 where
 
+import Sound.Pulse.Operation
+import Sound.Pulse.Userdata
 import Data.List (genericLength)
 import Data.Word (Word32, Word8)
 
@@ -159,18 +161,14 @@ instance Storable Sinkinfo where
            mapM (peekElemOff ptr . fromIntegral) [0.. size - 1]
     poke _ (Sinkinfo {..}) = error "PA: Currently no sinkinfo poke"
 
-data Userdata
-data PAOperation -- < TODO!!
 type SinkinfoCB = PAContext -> Ptr Sinkinfo -> CInt -> Ptr Userdata -> IO ()
 foreign import ccall "wrapper" mkSinkinfoCB :: SinkinfoCB -> IO (FunPtr SinkinfoCB)
 
-foreign import ccall "pa_context_get_sink_info_list" pa_context_get_sink_info_list :: PAContext -> FunPtr SinkinfoCB -> Ptr Userdata -> IO (Ptr PAOperation)
+foreign import ccall "pa_context_get_sink_info_list" pa_context_get_sink_info_list :: PAContext -> FunPtr SinkinfoCB -> Ptr Userdata -> IO (Ptr UOperation)
 
-getContextSinks :: PAContext -> (Sinkinfo -> IO ()) -> IO ()-> IO ()
+getContextSinks :: PAContext -> (Sinkinfo -> IO ()) -> IO () -> IO Operation
 getContextSinks cxt fun endf = do
     funP <- mkSinkinfoCB $ \_ ptr end _ -> if (end == 0)
                                               then (fun =<< peek ptr)
                                               else endf
-    _ <- pa_context_get_sink_info_list cxt funP nullPtr
-    return ()
-
+    ptrToOperation =<< pa_context_get_sink_info_list cxt funP nullPtr

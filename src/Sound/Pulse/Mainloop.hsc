@@ -11,7 +11,7 @@ module Sound.Pulse.Mainloop
     )
 where
 
-
+import Sound.Pulse.Userdata
 #include <pulse/mainloop-api.h>
 
 import Foreign.Marshal.Utils (with)
@@ -82,8 +82,6 @@ class PAMainloop a where
     deferSetDestroy :: PADeferEvent a -> IO () -> IO ()
 
     quitLoop :: a -> Int -> IO ()
-
-data Userdata
 
 data PAIOEventW a = PAIOEventW
     {- ioRealHandle  :: -} (PAIOEvent a)

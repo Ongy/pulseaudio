@@ -12,12 +12,13 @@ where
 -- ToInts commented out, because they will never be used (for now)
 #include <pulse/subscribe.h>
 #include <pulse/def.h>
-
+import Sound.Pulse.Operation
 import Data.Word (Word32)
 import Data.Bits ((.|.), (.&.))
 import Foreign.Ptr
-import Sound.Pulse.Context
 import Foreign.C.Types
+import Sound.Pulse.Context
+import Sound.Pulse.Userdata
 
 data SubscriptionEventFacility
     = SubscriptionEventSink
@@ -114,9 +115,6 @@ subscriptionMaskToInt SubscriptionMaskAll          = #{const PA_SUBSCRIPTION_MAS
 subscriptionMasksToInt :: [SubscriptionMask] -> CInt
 subscriptionMasksToInt = foldr (.|.) 0 . map subscriptionMaskToInt
 
-data Operation
-data Userdata
-
 type SubscribeCB = PAContext -> CInt -> CUInt -> Ptr Userdata -> IO ()
 foreign import ccall "wrapper" mkSubscribeCB :: SubscribeCB -> IO (FunPtr SubscribeCB)
 
@@ -136,9 +134,9 @@ foreign import ccall "pa_context_set_subscribe_callback" pa_context_set_subscrib
 foreign import ccall "pa_context_subscribe" pa_context_subscribe
     :: PAContext
     -> CInt
-    -> FunPtr (PAContextSuccessCB Userdata)
+    -> FunPtr PAContextSuccessCB
     -> Ptr Userdata
-    -> IO (Ptr Operation)
+    -> IO (Ptr UOperation)
 
 subscribeEvents
     :: PAContext
@@ -147,11 +145,10 @@ subscribeEvents
         -> Word32
         -> IO ()
         )
-    -> IO ()
+    -> IO Operation
 subscribeEvents cxt mask fun = do
     funP <- mkSubscribeCB $ \_ ival idx _ ->
         fun (subscriptionEventFromInt ival) (fromIntegral idx)
     pa_context_set_subscribe_callback cxt funP nullPtr
     sucP <- wrapSuccess (\b -> putStrLn ("Subscription success: " ++ show b))
-    _ <- pa_context_subscribe cxt (subscriptionMasksToInt mask) sucP nullPtr
-    return ()
+    ptrToOperation =<< pa_context_subscribe cxt (subscriptionMasksToInt mask) sucP nullPtr
