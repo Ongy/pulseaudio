@@ -1,47 +1,33 @@
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 module Sound.Pulse.Sinkinfo
-    ( CVolume(..)
-    , Volume
-    , SinkFlags(..)
+    ( SinkFlags(..)
     , SinkState(..)
+    , Sinkinfo(..)
 
     , getContextSinks
+    , getContextSinkByName
+    , getContextSinkByIndex
     )
 where
 
 #include <pulse/introspect.h>
 
+import Sound.Pulse.Volume
 import Sound.Pulse.Operation
 import Sound.Pulse.Userdata
-import Data.List (genericLength)
 import Data.Word (Word32, Word8)
 
-import Foreign.Ptr (Ptr, plusPtr, FunPtr, nullPtr)
+import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr, castFunPtrToPtr, castPtrToFunPtr)
+import Foreign.C.Types (CInt(..), CUInt(..))
+import Foreign.C.String (peekCString, withCString, CString)
 import Foreign.Storable (Storable(..))
-import Foreign.C.Types (CInt(..))
-import Foreign.C.String (peekCString)
 
 import Sound.Pulse.Context (Context)
 import Sound.Pulse.ChannelPosition
 import Sound.Pulse.SampleSpec
 
 import Sound.Pulse.Def (SinkFlags(..), sinkFlagssFromInt, SinkState(..), sinkStateFromInt)
-
-type Volume = Word32
-newtype CVolume = CVolume [Volume] deriving (Eq, Show)
-
-instance Storable CVolume where
-    sizeOf _ = #{size struct pa_cvolume}
-    alignment _ = alignment (undefined :: Word)
-    peek p = do
-        size :: Word8 <- #{peek struct pa_cvolume, channels} p
-        ints <- mapM (peekElemOff (#{ptr struct pa_cvolume, values} p) . fromIntegral) [0 .. size - 1]
-        return $ CVolume ints
-    poke p (CVolume vols) = do
-        #{poke struct pa_cvolume, channels} p $ (genericLength vols :: Word8)
-        let indexed = zip [0..] vols
-        mapM_ (uncurry (pokeElemOff (#{ptr struct pa_cvolume, values} p))) indexed
 
 data PropList -- TODO :)
 
@@ -64,7 +50,7 @@ data Sinkinfo = Sinkinfo
     , siFlags             :: [SinkFlags]
     , siProplist          :: Ptr PropList
     , siConfiguredLatency :: Word
-    , siBaseVolue         :: Volume
+    , siBaseVolume        :: Volume
     , siState             :: SinkState
     , siVolumeSteps       :: Word32
     , siCard              :: Word32
@@ -75,20 +61,20 @@ data Sinkinfo = Sinkinfo
 
 instance Storable Sinkinfo where
     sizeOf _ = #{size struct pa_sink_info}
-    alignment _ = alignment (undefined :: Word)
+    alignment _ = #{alignment struct pa_sink_info}
     peek p = Sinkinfo
-       <$> peekCString (#{ptr struct pa_sink_info, name} p)
+       <$> (peekCString =<< #{peek struct pa_sink_info, name} p)
        <*> #{peek struct pa_sink_info, index} p
-       <*> peekCString (#{ptr struct pa_sink_info, description} p)
+       <*> (peekCString =<< #{peek struct pa_sink_info, description} p)
        <*> #{peek struct pa_sink_info, sample_spec} p
        <*> #{peek struct pa_sink_info, channel_map} p
        <*> #{peek struct pa_sink_info, owner_module} p
        <*> #{peek struct pa_sink_info, volume} p
        <*> ((/= (0 :: CInt)) <$> (#{peek struct pa_sink_info, mute} p))
        <*> #{peek struct pa_sink_info, monitor_source} p
-       <*> peekCString (#{ptr struct pa_sink_info, monitor_source_name} p)
+       <*> (peekCString =<< #{peek struct pa_sink_info, monitor_source_name} p)
        <*> #{peek struct pa_sink_info, latency} p
-       <*> peekCString (#{ptr struct pa_sink_info, driver} p)
+       <*> (peekCString =<< #{peek struct pa_sink_info, driver} p)
        <*> (sinkFlagssFromInt <$> (#{peek struct pa_sink_info, mute} p))
        <*> #{peek struct pa_sink_info, proplist} p
        <*> #{peek struct pa_sink_info, configured_latency} p
@@ -112,9 +98,39 @@ foreign import ccall "wrapper" mkSinkinfoCB :: SinkinfoCB -> IO (FunPtr Sinkinfo
 
 foreign import ccall "pa_context_get_sink_info_list" pa_context_get_sink_info_list :: Context -> FunPtr SinkinfoCB -> Ptr Userdata -> IO (Ptr UOperation)
 
+foreign import ccall "pa_context_get_sink_info_by_name" pa_context_get_sink_info_by_name :: Context -> CString -> FunPtr SinkinfoCB -> Ptr Userdata -> IO (Ptr UOperation)
+
+foreign import ccall "pa_context_get_sink_info_by_index" pa_context_get_sink_info_by_index :: Context -> CUInt -> FunPtr SinkinfoCB -> Ptr Userdata -> IO (Ptr UOperation)
+
+mkCallback :: (Sinkinfo -> IO ()) -> IO () -> IO (FunPtr SinkinfoCB)
+mkCallback fun endf = mkSinkinfoCB $
+    \_ ptr end fP -> if end == 0
+        then fun =<< peek ptr
+        else do
+            endf -- Call the user end function
+            -- free the FunPtr defiend here
+            freeHaskellFunPtr (castPtrToFunPtr fP)
+
+
 getContextSinks :: Context -> (Sinkinfo -> IO ()) -> IO () -> IO Operation
 getContextSinks cxt fun endf = do
-    funP <- mkSinkinfoCB $ \_ ptr end _ -> if end == 0
-                                              then fun =<< peek ptr
-                                              else endf
-    ptrToOperation =<< pa_context_get_sink_info_list cxt funP nullPtr
+    funP <- mkCallback fun endf
+    ptrToOperation =<< pa_context_get_sink_info_list cxt funP (castFunPtrToPtr funP)
+
+getContextSinkByName
+    :: Context
+    -> String
+    -> (Sinkinfo -> IO ())
+    -> IO Operation
+getContextSinkByName cxt name fun = do
+    funP <- mkCallback fun (return ())
+    ptrToOperation =<< withCString name (\ptr -> pa_context_get_sink_info_by_name cxt ptr funP (castFunPtrToPtr funP))
+
+getContextSinkByIndex
+    :: Context
+    -> Word32
+    -> (Sinkinfo -> IO ())
+    -> IO Operation
+getContextSinkByIndex cxt idx fun = do
+    funP <- mkCallback fun (return ())
+    ptrToOperation =<< pa_context_get_sink_info_by_index cxt (fromIntegral idx) funP (castFunPtrToPtr funP)

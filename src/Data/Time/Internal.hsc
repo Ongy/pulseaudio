@@ -22,7 +22,7 @@ data PATime = PATime Word CLong deriving (Show, Eq, Ord)
 
 instance Storable PATime where
     sizeOf _ = #{size struct timespec}
-    alignment _ = alignment (undefined :: Word)
+    alignment _ = #{alignment struct timespec}
     peek p = PATime
         <$> #{peek struct timespec, tv_sec}  p
         <*> #{peek struct timespec, tv_nsec} p
@@ -35,8 +35,8 @@ instance Storable PATime where
 data PAITime = PAITime Word CLong deriving (Show, Eq, Ord)
 
 instance Storable PAITime where
-    sizeOf _ = #{size struct timespec}
-    alignment _ = alignment (undefined :: Word)
+    sizeOf _ = #{size struct timeval}
+    alignment _ = #{alignment struct timeval}
     peek p = PAITime
         <$> #{peek struct timeval, tv_sec}  p
         <*> #{peek struct timeval, tv_usec} p

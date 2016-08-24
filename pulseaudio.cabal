@@ -82,6 +82,9 @@ library
                        ,Sound.Pulse.SampleSpec
                        ,Sound.Pulse.Subscribe
                        ,Sound.Pulse.Operation
+                       ,Sound.Pulse.Serverinfo
+                       ,Sound.Pulse.Volume
+
 
   
   -- Modules included in this library but not exported.

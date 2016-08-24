@@ -19,7 +19,7 @@ newtype ChannelMap = ChannelMap [ChannelPosition] deriving (Eq, Show)
 
 instance Storable ChannelMap where
     sizeOf _ = #{size struct pa_channel_map}
-    alignment _ = alignment (undefined :: Word)
+    alignment _ = #{alignment struct pa_channel_map}
     peek p = do
         size :: Word8 <- #{peek struct pa_channel_map, channels} p
         ints <- mapM (peekElemOff (#{ptr struct pa_channel_map, map} p) . fromIntegral ) [0..size - 1]

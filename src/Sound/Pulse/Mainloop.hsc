@@ -192,7 +192,7 @@ data PAMainloopApi a = PAMainloopApi
 
 instance Storable (PAMainloopApi a) where
     sizeOf _ = #{size pa_mainloop_api}
-    alignment _ = alignment (undefined :: Word)
+    alignment _ = #{alignment pa_mainloop_api}
     peek p = PAMainloopApi
         <$> #{peek pa_mainloop_api, userdata} p
         <*> #{peek pa_mainloop_api, io_new} p
@@ -223,13 +223,15 @@ instance Storable (PAMainloopApi a) where
         #{poke pa_mainloop_api, defer_free}        p defer_free
         #{poke pa_mainloop_api, defer_set_destroy} p defer_set_destroy
         #{poke pa_mainloop_api, quit}              p quit
--- #{let poke_api field = "#{poke pa_mainloop_api, " field "} p $ " field " api"}
--- #{poke_api "userdata"}
 
 getMainloopImpl :: Ptr (PAMainloopApi a) -> IO a
 getMainloopImpl p =
     deRefStablePtr =<< (peek . #{ptr pa_mainloop_api, userdata} $ p)
 
+-- |Warning! This leaks a bit of memory when it's Garbage collected, because
+-- |the FunPtrs created for the PulseApi cannot be collected at that point.
+-- |Currently there is no way to properly free them, but this should only be
+-- |called once per application, so this will be a known Bug for now.
 getMainloopApi :: PAMainloop a => a -> IO (PAMainloopApi a)
 getMainloopApi api = do
     io_enable <- mkIOEnable $ \ptr flags -> do

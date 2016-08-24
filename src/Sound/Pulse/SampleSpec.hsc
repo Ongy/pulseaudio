@@ -20,7 +20,7 @@ data SampleSpec = SampleSpec
 
 instance Storable SampleSpec where
     sizeOf _ = #{size struct pa_sample_spec}
-    alignment _ = alignment (undefined :: Word)
+    alignment _ = #{alignment struct pa_sample_spec}
     peek p = SampleSpec
         <$> (sampleFormatFromInt <$> #{peek struct pa_sample_spec, format} p)
         <*> #{peek struct pa_sample_spec, rate} p

@@ -39,6 +39,11 @@ foreign import ccall "pa_context_subscribe" pa_context_subscribe
     -> Ptr Userdata
     -> IO (Ptr UOperation)
 
+-- |Currently the function given here is leaked! even if it's reset later on
+-- |This is currently unavoidable, since we don't know when the last event
+-- |occured.
+-- |This should only be called once per application run, so it will be a known
+-- |issue for now.
 subscribeEvents
     :: Context
     -> [SubscriptionMask]

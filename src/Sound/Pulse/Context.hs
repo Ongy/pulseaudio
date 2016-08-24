@@ -17,6 +17,7 @@ module Sound.Pulse.Context
     )
 where
 
+import Control.Monad ((<=<))
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Marshal.Utils
@@ -71,7 +72,7 @@ connectContext
     :: Context
     -> Maybe String
     -> [ContextFlags]
-    -- -> SpawnApi!
+    -- -> SpawnApi! -- TODO
     -> IO ()
 connectContext cxt serv flags = do
     let wrapper = maybe ($ nullPtr) (withCString) serv
@@ -80,6 +81,10 @@ connectContext cxt serv flags = do
        then error ("Failed to connect to server :( " ++ show ret)
        else return ()
 
+-- |This callback is leaked! if it's reset
+-- |IMO the handler should stay forever aswell (even if just for loggin), so don't worry about it.
+-- |This should only be called once per application run though, so it will be a
+-- |known issue for know.
 setStateCallback
     :: Context
     -> IO ()
@@ -102,6 +107,4 @@ getContextErr :: Context -> IO Int
 getContextErr = fmap fromIntegral . pa_context_errno
 
 getContextErrStr :: Context -> IO String
-getContextErrStr cxt = do
-    num <- getContextErr cxt
-    peekCString $ pa_strerror $ fromIntegral num
+getContextErrStr = peekCString . pa_strerror . fromIntegral <=< getContextErr
