@@ -9,6 +9,8 @@ where
 import Data.Bits (Bits(..))
 import Foreign.C.Types (CInt)
 
+import Data.Foldable (Foldable)
+
 foldFlag :: (Foldable t, Num b, Bits b) => (a -> b) -> t a -> b
 foldFlag fun = foldr ((.|.) . fun) 0
 

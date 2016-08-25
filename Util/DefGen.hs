@@ -224,6 +224,7 @@ putHead = do
     putStrLn "module Sound.Pulse.Def"
     putStrLn "where\n"
     mapM_ (\file -> putStrLn ("#include <" ++ file ++ ">")) files
+    putStrLn "import Data.Foldable (Foldable)"
     putStrLn "import Data.Bits (Bits(..))"
     putStrLn "import Foreign.C.Types (CInt)\n"
     putFoldFun
