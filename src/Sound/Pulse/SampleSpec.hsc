@@ -31,6 +31,7 @@ where
 
 #include <pulse/sample.h>
 
+import Control.Applicative ((<$>))
 import Sound.Pulse.Def (SampleFormat(..), sampleFormatFromInt, sampleFormatToInt)
 import Foreign.Storable (Storable(..))
 

@@ -37,6 +37,7 @@ where
 
 #include <pulse/introspect.h>
 
+import Control.Applicative ((<$>))
 import Sound.Pulse.Volume
 import Sound.Pulse.Operation
 import Sound.Pulse.Userdata

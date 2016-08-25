@@ -44,6 +44,7 @@ module Sound.Pulse.Context
     )
 where
 
+import Control.Applicative ((<$>))
 import Control.Monad ((<=<))
 import Foreign.C.String
 import Foreign.C.Types

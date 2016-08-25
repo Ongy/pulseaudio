@@ -42,6 +42,7 @@ where
 import Sound.Pulse.Userdata
 #include <pulse/mainloop-api.h>
 
+import Control.Applicative ((<$>))
 import Foreign.Marshal.Utils (with)
 import Foreign.Storable
 import Foreign.StablePtr

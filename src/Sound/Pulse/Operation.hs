@@ -35,6 +35,7 @@ module Sound.Pulse.Operation
     )
 where
 
+import Control.Applicative ((<$>))
 import Sound.Pulse.Def (OperationState(..), operationStateFromInt)
 import Sound.Pulse.Userdata
 import Foreign.C.Types (CInt(..))

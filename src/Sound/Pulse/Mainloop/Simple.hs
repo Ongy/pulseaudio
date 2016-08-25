@@ -45,6 +45,7 @@ module Sound.Pulse.Mainloop.Simple
     )
 where
 
+import Control.Applicative ((<$>))
 import System.Timeout (timeout)
 import Data.Maybe (listToMaybe, fromJust, isJust)
 import Control.Applicative
