@@ -38,7 +38,7 @@ where
 #include <time.h>
 #include <sys/time.h>
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Foreign.Storable
 import Foreign.C.Types
 

@@ -46,7 +46,7 @@ import Sound.Pulse.Userdata
 #endif
 #include <pulse/mainloop-api.h>
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Foreign.Marshal.Utils (with)
 import Foreign.Storable
 import Foreign.StablePtr

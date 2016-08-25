@@ -34,7 +34,7 @@ where
 #endif
 #include <pulse/introspect.h>
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Data.Word (Word32)
 import Sound.Pulse.SampleSpec
 import Sound.Pulse.ChannelPosition
