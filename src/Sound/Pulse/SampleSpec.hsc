@@ -29,6 +29,9 @@ module Sound.Pulse.SampleSpec
     )
 where
 
+#if __GLASGOW_HASKELL__ < 800
+#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+#endif
 #include <pulse/sample.h>
 
 import Control.Applicative ((<$>))

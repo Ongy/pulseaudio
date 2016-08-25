@@ -32,6 +32,9 @@ module Sound.Pulse.Volume
     )
 where
 
+#if __GLASGOW_HASKELL__ < 800
+#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+#endif
 #include <pulse/introspect.h>
 
 import Data.Word (Word32, Word8)

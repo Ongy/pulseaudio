@@ -40,6 +40,10 @@ module Sound.Pulse.Mainloop
 where
 
 import Sound.Pulse.Userdata
+
+#if __GLASGOW_HASKELL__ < 800
+#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+#endif
 #include <pulse/mainloop-api.h>
 
 import Control.Applicative ((<$>))
