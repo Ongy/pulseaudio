@@ -1,5 +1,29 @@
+{-
+    Copyright 2016 Markus Ongyerth
+
+    This file is part of pulseaudio-hs.
+
+    Monky is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Monky is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with pulseaudio-hs.  If not, see <http://www.gnu.org/licenses/>.
+-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-|
+Module      : sound.Pulse.ChannelPosition
+Description : Provides types for PA_CHANNEL_POSITION and pa_channel_map.
+Maintianer  : ongy
+Stability   : experimental
+-}
 module Sound.Pulse.ChannelPosition
     ( ChannelPosition(..)
     , ChannelMap(..)
@@ -15,6 +39,7 @@ import Foreign.Storable (Storable(..))
 
 import Sound.Pulse.Def (ChannelPosition(..), channelPositionFromInt, channelPositionToInt)
 
+-- |The Type for ChannelMaps
 newtype ChannelMap = ChannelMap [ChannelPosition] deriving (Eq, Show)
 
 instance Storable ChannelMap where

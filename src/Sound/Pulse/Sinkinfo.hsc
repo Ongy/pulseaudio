@@ -1,5 +1,29 @@
+{-
+    Copyright 2016 Markus Ongyerth
+
+    This file is part of pulseaudio-hs.
+
+    Monky is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Monky is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with pulseaudio-hs.  If not, see <http://www.gnu.org/licenses/>.
+-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-|
+Module      : Sound.Pulse.Sinkinfo
+Description : provides the time type used for pa_sink_info.
+Maintianer  : ongy
+Stability   : experimental
+-}
 module Sound.Pulse.Sinkinfo
     ( SinkFlags(..)
     , SinkState(..)
@@ -31,9 +55,10 @@ import Sound.Pulse.Def (SinkFlags(..), sinkFlagssFromInt, SinkState(..), sinkSta
 
 data PropList -- TODO :)
 
-data FormatInfo
-data SinkPortInfo
+data FormatInfo -- TODO
+data SinkPortInfo -- TODO
 
+-- |Type used for pa_sink_info
 data Sinkinfo = Sinkinfo
     { siName              :: String
     , siIndex             :: Word32
@@ -111,12 +136,17 @@ mkCallback fun endf = mkSinkinfoCB $
             -- free the FunPtr defiend here
             freeHaskellFunPtr (castPtrToFunPtr fP)
 
-
-getContextSinks :: Context -> (Sinkinfo -> IO ()) -> IO () -> IO Operation
+-- |Get all sinks from a context.
+getContextSinks
+    :: Context -- ^The context
+    -> (Sinkinfo -> IO ()) -- ^List callback. Will be called once per list entry
+    -> IO () -- ^End callback. Will be called once after all list entries
+    -> IO Operation
 getContextSinks cxt fun endf = do
     funP <- mkCallback fun endf
     ptrToOperation =<< pa_context_get_sink_info_list cxt funP (castFunPtrToPtr funP)
 
+-- |Get a sink by name
 getContextSinkByName
     :: Context
     -> String
@@ -126,6 +156,7 @@ getContextSinkByName cxt name fun = do
     funP <- mkCallback fun (return ())
     ptrToOperation =<< withCString name (\ptr -> pa_context_get_sink_info_by_name cxt ptr funP (castFunPtrToPtr funP))
 
+-- |Get a sink by index
 getContextSinkByIndex
     :: Context
     -> Word32

@@ -1,7 +1,35 @@
+{-
+    Copyright 2016 Markus Ongyerth
+
+    This file is part of pulseaudio-hs.
+
+    Monky is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Monky is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with pulseaudio-hs.  If not, see <http://www.gnu.org/licenses/>.
+-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE RecordWildCards #-}
+{-|
+Module      : Sound.Pulse.Mainloop
+Description : Provides a class and wrapper type for Mainloop abstraction
+Maintianer  : ongy
+Stability   : experimental
+
+This module provides Haskell abstractions over the pulse mainloop-api <https://freedesktop.org/software/pulseaudio/doxygen/mainloop-api_8h.html>.
+
+There is also a simple implementation for this in 'Sound.Pulse.Mainloop.Simple'.
+-}
 module Sound.Pulse.Mainloop
     ( PAMainloop(..)
     , PAIOEventFlags(..)
@@ -28,15 +56,18 @@ import Control.Concurrent.MVar
 import Data.Time
 import Data.Time.Internal
 
-
+-- |Events that 'PAIOEvent's may wait for.
+-- At my current level of testing, it looks like libpulse only uses Input (and
+-- I guess output when writing to the server)
 data PAIOEventFlags
-    = PAIOEventNull
-    | PAIOEventInput
-    | PAIOEventOutput
-    | PAIOEventHangup
-    | PAIOEventError
-    deriving (Eq, Show, Ord)
+    = PAIOEventNull -- ^No Event (this is for compatibility, should never show up)
+    | PAIOEventInput -- ^Fd went ready for reading
+    | PAIOEventOutput -- ^Fd went ready for writing
+    | PAIOEventHangup -- ^Fd got a hangup (see poll documentation)
+    | PAIOEventError -- ^Fd got an error (see poll documentation)
+    deriving (Eq, Show)
 
+-- |Internal function for conversion
 ioEventToCInt :: PAIOEventFlags -> CInt
 ioEventToCInt PAIOEventNull   = #{const PA_IO_EVENT_NULL}
 ioEventToCInt PAIOEventInput  = #{const PA_IO_EVENT_INPUT}
@@ -44,9 +75,11 @@ ioEventToCInt PAIOEventOutput = #{const PA_IO_EVENT_OUTPUT}
 ioEventToCInt PAIOEventHangup = #{const PA_IO_EVENT_HANGUP}
 ioEventToCInt PAIOEventError  = #{const PA_IO_EVENT_ERROR}
 
+-- |Internal function for conversion
 ioEventsToCInt :: [PAIOEventFlags] -> CInt
 ioEventsToCInt xs = foldr (\x y -> ioEventToCInt x .|. y) 0 xs
 
+-- |Internal function for conversion
 ioEventsFromCInt :: CInt -> [PAIOEventFlags]
 ioEventsFromCInt val =
     let enull  = potAdd PAIOEventNull   []
@@ -58,52 +91,77 @@ ioEventsFromCInt val =
     where potAdd :: PAIOEventFlags -> ([PAIOEventFlags] -> [PAIOEventFlags])
           potAdd con = if (val .&. ioEventToCInt con) /= 0 then (con:) else id
 
+{- | The main class for a pulseaudio mainloop abstraction. -}
 class PAMainloop a where
-    -- |Pulseaudio IO event
+    -- |Pulseaudio IO event. Will have to wait for an Fd to become ready
+    -- (w.r.t. to flags)
     data PAIOEvent a :: *
-    -- |Pulseaudio Time event
+    -- |Pulseaudio Time event. Should fire at a specified time.
     data PATimeEvent a :: *
-    -- |Pulseaudio Defer event
+    -- |Pulseaudio Defer event. Should be handled before other events. May
+    -- be disabled.
     data PADeferEvent a :: *
 
+    -- |Create a new 'PAIOEvent' and set it to listen for specified events.
     ioNew    :: a -> Fd -> [PAIOEventFlags] -> ([PAIOEventFlags] -> IO ()) -> IO (PAIOEvent a)
+    -- |Modify the events an IOEvent is waiting on.
     ioEnable :: (PAIOEvent a) -> [PAIOEventFlags] -> IO ()
+    -- |Delete an IOEvent.
     ioFree   :: (PAIOEvent a) -> IO ()
+    -- |Set the destroy handler of an IOEvent. The handler should be called,
+    -- when the event is deleted.
     ioSetDestroy :: (PAIOEvent a) -> IO () -> IO ()
 
+    -- |Create a new 'PATimeEvent'. This should fire at the given time.
     timeNew :: a -> PATime -> (PATime -> IO ()) -> IO (PATimeEvent a)
+    -- |Set a new time when the 'PATimeEvent' should fire. This may require
+    -- requeing.
     timeRestart :: PATimeEvent a -> PATime -> IO ()
+    -- |Delete a 'PATimeEvent'.
     timeFree :: PATimeEvent a -> IO ()
+    -- |Set the destroy handler.
     timeSetDestroy :: PATimeEvent a -> IO () -> IO ()
 
+    -- |Create a new 'PADefereEvent'. This should be fired before any other
+    -- events.
     deferNew :: a -> IO () -> IO (PADeferEvent a)
+    -- |Enable or disable a 'PADefereEvent'.
     deferEnable :: PADeferEvent a -> Bool -> IO ()
+    -- |Delete the event.
     deferFree :: PADeferEvent a -> IO ()
+    -- |Set the destroy handler for the event.
     deferSetDestroy :: PADeferEvent a -> IO () -> IO ()
 
+    -- |Quit the mainloop and return the given int.
     quitLoop :: a -> Int -> IO ()
 
+-- |Internal wrapper type for PAIOEvent
 data PAIOEventW a = PAIOEventW
     {- ioRealHandle  :: -} (PAIOEvent a)
     {- ioWrappedData :: -} (Ptr Userdata)
     {- ioWrappedApi  :: -} (Ptr (PAMainloopApi a))
 
+-- |"Record-name"
 ioRealHandle :: PAIOEventW a -> PAIOEvent a
 ioRealHandle (PAIOEventW x _ _) = x
 
+-- |Internal wrapper type for PATimeEvent
 data PATimeEventW a = PATimeEventW
     {- timeRealHandle  :: -} (PATimeEvent a)
     {- timeWrappedData :: -} (Ptr Userdata)
     {- timeWrappedApi  :: -} (Ptr (PAMainloopApi a))
 
+-- |"Record-name"
 timeRealHandle :: PATimeEventW a -> PATimeEvent a
 timeRealHandle (PATimeEventW x _ _) = x
 
+-- |Internal wrapper type for PADeferEvent
 data PADeferEventW a = PADeferEventW
     {- deferRealHandle  :: -} (PADeferEvent a)
     {- deferWrappedData :: -} (Ptr Userdata)
     {- deferWrappedApi  :: -} (Ptr (PAMainloopApi a))
 
+-- |"Record-name"
 deferRealHandle :: PADeferEventW a -> PADeferEvent a
 deferRealHandle (PADeferEventW x _ _) = x
 
@@ -127,7 +185,6 @@ type IOSetDestroy a = StablePtr (PAIOEventW a) -> FunPtr (IODestroy a) -> IO ()
 foreign import ccall "wrapper" mkIOSetDestroy :: IOSetDestroy a -> IO (FunPtr (IOSetDestroy a))
 
 {- Time Events -}
-
 type TimeEvCB a = Ptr (PAMainloopApi a) -> StablePtr (PATimeEventW a) -> Ptr PAITime -> Ptr Userdata -> IO ()
 foreign import ccall "dynamic" mkTimeEvCB :: FunPtr (TimeEvCB a) -> (TimeEvCB a)
 
@@ -147,7 +204,6 @@ type TimeSetDestroy a = StablePtr (PATimeEventW a) -> FunPtr (TimeDestroy a) -> 
 foreign import ccall "wrapper" mkTimeSetDestroy :: TimeSetDestroy a -> IO (FunPtr (TimeSetDestroy a))
 
 {- Defer Events -}
-
 type DeferEvCB a = Ptr (PAMainloopApi a) -> StablePtr (PADeferEventW a) -> Ptr Userdata -> IO ()
 foreign import ccall "dynamic" mkDeferEvCB :: FunPtr (DeferEvCB a) -> DeferEvCB a
 
@@ -169,6 +225,8 @@ foreign import ccall "wrapper" mkDeferSetDestroy :: DeferSetDestroy a -> IO (Fun
 type Quit a = Ptr (PAMainloopApi a) -> CInt -> IO ()
 foreign import ccall "wrapper" mkQuit :: Quit a -> IO (FunPtr (Quit a))
 
+-- |The type used to encapsule a 'PAMainloop' in a C compatible struct of
+-- 'FunPtr's.
 data PAMainloopApi a = PAMainloopApi
     { userdata          :: StablePtr a
 
@@ -224,14 +282,15 @@ instance Storable (PAMainloopApi a) where
         #{poke pa_mainloop_api, defer_set_destroy} p defer_set_destroy
         #{poke pa_mainloop_api, quit}              p quit
 
+-- |Get the Mainloop back from a 'PAMainloopApi' without marshalling all of it.
 getMainloopImpl :: Ptr (PAMainloopApi a) -> IO a
 getMainloopImpl p =
     deRefStablePtr =<< (peek . #{ptr pa_mainloop_api, userdata} $ p)
 
 -- |Warning! This leaks a bit of memory when it's Garbage collected, because
--- |the FunPtrs created for the PulseApi cannot be collected at that point.
--- |Currently there is no way to properly free them, but this should only be
--- |called once per application, so this will be a known Bug for now.
+-- the FunPtrs created for the PulseApi cannot be collected at that point.
+-- Currently there is no way to properly free them, but this should only be
+-- called once per application, so this will be a known Bug for now.
 getMainloopApi :: PAMainloop a => a -> IO (PAMainloopApi a)
 getMainloopApi api = do
     io_enable <- mkIOEnable $ \ptr flags -> do

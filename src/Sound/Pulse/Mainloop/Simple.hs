@@ -1,5 +1,42 @@
+{-
+    Copyright 2016 Markus Ongyerth
+
+    This file is part of pulseaudio-hs.
+
+    Monky is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Monky is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with pulseaudio-hs.  If not, see <http://www.gnu.org/licenses/>.
+-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE InstanceSigs #-}
+{-|
+Module      : Sound.Pulse.Mainloop.Simple
+Description : provides a simple (buggy?) implementation of the pulse mainloop.
+Maintianer  : ongy
+Stability   : experimental
+
+This implementation lacks support for anything but IOInput and IOOutput!.
+
+The main appeal of this is, that it runs in the Haskell RTS system and does not
+block the RTS in any way.
+If the 'doLoop' function is called in an 'forkIO', all functions will "just work",
+and may be wrapped into a synchronous api wrapper.
+
+If the callback style application flow should be used, this will dispatch all
+callbacks in the same (Haskell)-thread.
+
+Most function *should* be thread safe (adding multiple events etc.) but there are
+no checks done for incompatible things happening (modifying and removing the same event).
+-}
 module Sound.Pulse.Mainloop.Simple
     ( MainloopImpl
     , getMainloopImpl
@@ -25,6 +62,7 @@ import Sound.Pulse.Mainloop
 import Data.Time
 
 -- Has to keep state internally because of StablePtrs being passed around
+-- |The 'PAIOEvent' type for this implementation
 data IOEvent = IOEvent
     { ioCallback :: [PAIOEventFlags] -> IO ()
     , ioFd       :: Fd
@@ -37,6 +75,7 @@ data IOEvent = IOEvent
 instance Eq IOEvent where
     x == y = ioID x == ioID y
 
+-- |The 'PATimeEvent' type for this implementation
 data TimeEvent = TimeEvent
     { timeCallback :: PATime -> IO ()
     , timeImpl     :: MainloopImpl
@@ -48,6 +87,7 @@ data TimeEvent = TimeEvent
 instance Eq TimeEvent where
     x == y = timeID x == timeID y
 
+-- |The 'PADeferEvent' type for this implementation
 data DeferEvent = DeferEvent
     { deferCallback :: IO ()
     , deferImpl     :: MainloopImpl
@@ -59,6 +99,7 @@ data DeferEvent = DeferEvent
 instance Eq DeferEvent where
     x == y = deferID x == deferID y
 
+-- |Implementation type, keeping state about existing events.
 data MainloopImpl = MainloopImpl
     -- Lists for events
     { implIOEvents    :: IORef [IOEvent]
@@ -92,7 +133,7 @@ waitWriteEvent evt = do
         wait
         return (PAIOEventOutput, evt)
 
-
+-- |Split up the IOEvents into different event types.
 splitEvents :: [IOEvent] -> IO ([IOEvent], [IOEvent])
 splitEvents [] = return ([], [])
 splitEvents (x:xs) = do
@@ -104,7 +145,7 @@ splitEvents (x:xs) = do
     when (PAIOEventError `elem` events) (fail "PASimple does not support Error")
     return (cr tr, cw tw)
 
-
+-- |Create the STM event we want to wait on, to get the next event possible.
 waitEvents :: MainloopImpl -> IO (STM (PAIOEventFlags, IOEvent))
 waitEvents impl = do
     (readEvt, writeEvt) <- splitEvents =<< readIORef (implIOEvents impl)
@@ -121,8 +162,7 @@ waitEvents impl = do
     --        else foldr1 (<|>) writeEvts
     -- We prefere reading over writing with this!
 
-
--- Add wakup pipe!
+-- |Do one iteration of waiting for and dispatching events.
 doRun :: MainloopImpl -> IO ()
 doRun impl = do
     (pipeWait, _) <- threadWaitReadSTM . fst . implPipe $ impl
@@ -157,8 +197,8 @@ doRun impl = do
             return ()
 
 -- |Do one iteration of events. This may be dispatchin defered events,
--- |a timer, an io event, or simply a wakeup.
--- |Event callback will be called in the same thread as this!
+-- a timer, an io event, or simply a wakeup.
+-- Event callback will be called in the same thread as this!
 doIteration :: MainloopImpl -> IO ()
 doIteration impl = do
     defers <- readIORef $ implDeferEvents impl
@@ -168,6 +208,7 @@ doIteration impl = do
        else do
            mapM_ deferCallback actives
 
+-- |Loop in the pulse main loop until eternety
 doLoop :: MainloopImpl -> IO ()
 doLoop impl = do
     doIteration impl
@@ -176,6 +217,8 @@ doLoop impl = do
        then putStrLn ("Ending Simpleloop: " ++ show cont)
        else doLoop impl
 
+
+-- |Create a new 'MainloopImpl' with initial state
 getMainloopImpl :: IO MainloopImpl
 getMainloopImpl = MainloopImpl
     <$> newIORef []
@@ -194,6 +237,7 @@ getMainloopImpl = MainloopImpl
     --        rh <- fdToHandle r
     --        wh <- fdToHandle w
     --        return (rh, wh)
+
 
 atomModifyIORef :: IORef a -> (a -> a) -> IO ()
 atomModifyIORef ref fun = void $ atomicModifyIORef ref (fun &&& id)

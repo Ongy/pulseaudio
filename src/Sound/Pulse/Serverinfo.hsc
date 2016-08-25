@@ -1,5 +1,32 @@
+{-
+    Copyright 2016 Markus Ongyerth
+
+    This file is part of pulseaudio-hs.
+
+    Monky is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Monky is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with pulseaudio-hs.  If not, see <http://www.gnu.org/licenses/>.
+-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-|
+Module      : Sound.Pulse.Serverinfo
+Description : provides the time type used for pa_server_info.
+Maintianer  : ongy
+Stability   : experimental
+-}
 module Sound.Pulse.Serverinfo
+    ( ServerInfo(..)
+    , getServerInfo
+    )
 where
 
 #include <pulse/introspect.h>
@@ -15,6 +42,7 @@ import Foreign.Storable
 import Foreign.Ptr
 import Foreign.C.String
 
+-- |The type used for pa_server_info
 data ServerInfo = ServerInfo
     { userName          :: String
     , hostName          :: String
@@ -48,8 +76,9 @@ foreign import ccall "wrapper" mkServerInfoCB :: ServerInfoCB -> IO (FunPtr Serv
 
 foreign import ccall "pa_context_get_server_info" pa_context_get_server_info :: Context -> FunPtr ServerInfoCB -> Ptr Userdata -> IO (Ptr UOperation)
 
+-- |Get the server info.
 getServerInfo
-    :: Context
+    :: Context -- ^Context for the server connection
     -> (ServerInfo -> IO ())
     -> IO ()
 getServerInfo cxt fun = do

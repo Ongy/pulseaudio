@@ -1,4 +1,5 @@
 {-# OPTIONS -fno-warn-overlapping-patterns #-}
+{-# OPTIONS_HADDOCK hide #-}
 module Sound.Pulse.Def
 where
 

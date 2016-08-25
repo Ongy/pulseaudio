@@ -220,6 +220,7 @@ putFoldFun = do
 putHead :: IO ()
 putHead = do
     putStrLn "{-# OPTIONS -fno-warn-overlapping-patterns #-}"
+    putStrLn "{-# OPTIONS_HADDOCK hide #-}"
     putStrLn "module Sound.Pulse.Def"
     putStrLn "where\n"
     mapM_ (\file -> putStrLn ("#include <" ++ file ++ ">")) files
