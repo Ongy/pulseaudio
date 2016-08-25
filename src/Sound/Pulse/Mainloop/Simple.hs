@@ -18,6 +18,7 @@
 -}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE CPP #-}
 {-|
 Module      : Sound.Pulse.Mainloop.Simple
 Description : provides a simple (buggy?) implementation of the pulse mainloop.
@@ -62,6 +63,37 @@ import System.Posix.Types (Fd(..))
 
 import Sound.Pulse.Mainloop
 import Data.Time
+
+-- so ghc 7.6 doesn't have threadWait(Read/Write)STM yet....
+#if MIN_VERSION_base(4,7,0)
+#else
+import Control.Concurrent.STM.TVar
+threadWaitReadSTM :: Fd -> IO (Sync.STM (), IO ())
+threadWaitReadSTM fd = do
+      m <- newTVarIO False
+      _ <- forkIO $ do
+        threadWaitRead fd
+        atomically $ writeTVar m True
+      let waitAction = do b <- readTVar m
+                          if b then return () else retry
+      let killAction = return ()
+      return (waitAction, killAction)
+
+-- | Returns an STM action that can be used to wait until data
+-- can be written to a file descriptor. The second returned value
+-- is an IO action that can be used to deregister interest
+-- in the file descriptor.
+threadWaitWriteSTM :: Fd -> IO (Sync.STM (), IO ())
+threadWaitWriteSTM fd = do
+      m <- newTVarIO False
+      _ <- forkIO $ do
+        threadWaitWrite fd
+        atomically $ writeTVar m True
+      let waitAction = do b <- readTVar m
+                          if b then return () else retry
+      let killAction = return ()
+      return (waitAction, killAction)
+#endif
 
 -- Has to keep state internally because of StablePtrs being passed around
 -- |The 'PAIOEvent' type for this implementation
