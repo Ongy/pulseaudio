@@ -68,7 +68,7 @@ import Data.Time
 #if MIN_VERSION_base(4,7,0)
 #else
 import Control.Concurrent.STM.TVar
-threadWaitReadSTM :: Fd -> IO (Sync.STM (), IO ())
+threadWaitReadSTM :: Fd -> IO (STM (), IO ())
 threadWaitReadSTM fd = do
       m <- newTVarIO False
       _ <- forkIO $ do
@@ -83,7 +83,7 @@ threadWaitReadSTM fd = do
 -- can be written to a file descriptor. The second returned value
 -- is an IO action that can be used to deregister interest
 -- in the file descriptor.
-threadWaitWriteSTM :: Fd -> IO (Sync.STM (), IO ())
+threadWaitWriteSTM :: Fd -> IO (STM (), IO ())
 threadWaitWriteSTM fd = do
       m <- newTVarIO False
       _ <- forkIO $ do
