@@ -35,7 +35,7 @@ where
 #include <pulse/channelmap.h>
 
 import Data.List (genericLength)
-import Data.Word (Word8)
+import Data.Word (Word8, Word)
 import Foreign.Ptr (plusPtr) -- #{ptr ...} needs this
 import Foreign.Storable (Storable(..))
 

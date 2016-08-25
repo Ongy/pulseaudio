@@ -46,6 +46,7 @@ where
 
 -- PATime is defined in here, for better hiding :)
 import Data.Time.Internal
+import Data.Word (Word)
 
 import Foreign.Ptr
 import Foreign.Storable

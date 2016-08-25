@@ -33,7 +33,7 @@ module Sound.Pulse.Subscribe
 where
 
 import Sound.Pulse.Operation
-import Data.Word (Word32)
+import Data.Word (Word32, Word)
 import Data.Bits ((.&.))
 import Foreign.Ptr
 import Foreign.C.Types

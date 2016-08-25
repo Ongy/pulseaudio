@@ -37,7 +37,7 @@ where
 #endif
 #include <pulse/introspect.h>
 
-import Data.Word (Word32, Word8)
+import Data.Word (Word32, Word8, Word)
 import Data.List (genericLength)
 import Foreign.Storable (Storable(..))
 import Foreign.Ptr (plusPtr)

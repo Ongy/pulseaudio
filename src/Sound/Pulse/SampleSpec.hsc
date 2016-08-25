@@ -38,7 +38,7 @@ import Control.Applicative ((<$>), (<*>))
 import Sound.Pulse.Def (SampleFormat(..), sampleFormatFromInt, sampleFormatToInt)
 import Foreign.Storable (Storable(..))
 
-import Data.Word (Word32, Word8)
+import Data.Word (Word32, Word8, Word)
 
 -- |The pa_sample_spec type for Haskell.
 data SampleSpec = SampleSpec

@@ -44,7 +44,7 @@ import Control.Applicative ((<$>), (<*>))
 import Sound.Pulse.Volume
 import Sound.Pulse.Operation
 import Sound.Pulse.Userdata
-import Data.Word (Word32, Word8)
+import Data.Word (Word32, Word8, Word)
 
 import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr, castFunPtrToPtr, castPtrToFunPtr)
 import Foreign.C.Types (CInt(..), CUInt(..))
