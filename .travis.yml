@@ -11,6 +11,11 @@ before_cache:
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
 
+addons:
+  apt:
+    packages:
+      - libpulse-dev
+
 matrix:
   include:
     - env: CABALVER=1.16 GHCVER=7.6.3
