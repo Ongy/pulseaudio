@@ -10,13 +10,27 @@ name:                pulseaudio
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.0.0
+version:             0.0.1.0
 
 -- A short (one-line) description of the package.
-synopsis:            A low-level wrapper around the pulseaudio client asynchronous api
+synopsis:            A low-level (incomplete) wrapper around the pulseaudio client asynchronous api
 
 -- A longer description of the package.
--- description:         
+description:         
+  This package mainly exists, because I wanted to query the current system
+  volume from the pulse audio server.
+  .
+  Doing this required me to build at least the core of the pulse api.
+  .
+  This package is provided as is, with very little testing and only a small
+  subset of the pulse api implemented.
+  Expanding this package *should* be rather easy. At least for query/control.
+  If you are interested in doing this, but don't know how, feel free to contact me.
+  .
+  .
+  In package is a bit unrefined and rough. If you have better structure for
+  modules feel free to reorganize them and making a PR. This also means, don't
+  see this structur as fixed yet, it may change if someone has a better idea.
 
 -- The license under which the package is released.
 license:             LGPL-3
@@ -45,7 +59,8 @@ extra-source-files:  ChangeLog.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-executable test
+executable pulse-test
+  buildable:           False
   -- .hs or .lhs file containing the Main module.
   main-is:             Test.hs
   hs-source-dirs:      bin
