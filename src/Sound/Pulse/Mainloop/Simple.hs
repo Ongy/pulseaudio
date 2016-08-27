@@ -243,12 +243,12 @@ doIteration impl = do
            mapM_ deferCallback actives
 
 -- |Loop in the pulse main loop until eternety
-doLoop :: MainloopImpl -> IO ()
+doLoop :: MainloopImpl -> IO Int
 doLoop impl = do
     doIteration impl
     cont <- readIORef $ implRunning impl
     if isJust cont
-       then putStrLn ("Ending Simpleloop: " ++ show cont)
+       then return (fromJust cont)
        else doLoop impl
 
 
@@ -368,5 +368,6 @@ instance PAMainloop MainloopImpl where
     deferSetDestroy (PADeferEvent x) = atomicWriteIORef (deferDestroy x)
 
     quitLoop :: MainloopImpl -> Int -> IO ()
-    quitLoop impl = atomicWriteIORef (implRunning impl) . Just
-
+    quitLoop impl val = do
+        atomicWriteIORef (implRunning impl) $ Just val
+        wakeImpl impl

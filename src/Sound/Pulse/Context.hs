@@ -105,13 +105,13 @@ connectContext
     -> Maybe String -- ^The server to connect to. If this is Nothing, connect to the default server.
     -> [ContextFlags] -- ^Flags to control the startup behaviour of the server.
     -- -> SpawnApi! -- TODO
-    -> IO ()
+    -> IO (Maybe Int)
 connectContext cxt serv flags = do
     let wrapper = maybe ($ nullPtr) (withCString) serv
     ret <- wrapper (\ptr -> pa_context_connect cxt ptr (contextFlagssToInt flags) nullPtr)
     if ret /= 0
-       then error ("Failed to connect to server :( " ++ show ret)
-       else return ()
+       then Just <$> getContextErr cxt
+       else return Nothing
 
 -- |This callback is leaked! if it's reset
 -- IMO the handler should stay forever aswell (even if just for loggin), so don't worry about it.

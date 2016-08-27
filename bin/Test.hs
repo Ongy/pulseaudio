@@ -1,4 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
 import Sound.Pulse.Context
 import Sound.Pulse.Mainloop.Simple
 

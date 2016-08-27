@@ -80,5 +80,5 @@ subscribeEvents cxt mask fun = do
     funP <- mkSubscribeCB $ \_ ival idx _ ->
         fun (subscriptionEventFromInt ival) (fromIntegral idx)
     pa_context_set_subscribe_callback cxt funP nullPtr
-    sucP <- wrapSuccess (\b -> putStrLn ("Subscription success: " ++ show b))
+    sucP <- wrapSuccess (\_ -> return ())
     ptrToOperation =<< pa_context_subscribe cxt (subscriptionMasksToInt mask) sucP nullPtr
