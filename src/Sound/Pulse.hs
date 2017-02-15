@@ -9,6 +9,7 @@ module Sound.Pulse
     )
 where
 
+import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Concurrent.MVar (newEmptyMVar, takeMVar, putMVar, newMVar, modifyMVar_)
 import Sound.Pulse.Context (Context)
