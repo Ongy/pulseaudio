@@ -29,6 +29,7 @@ module Sound.Pulse.Subscribe
     , SubscriptionMask(..)
 
     , subscribeEvents
+    , subscribeEventsM
     )
 where
 
@@ -37,6 +38,7 @@ import Data.Word (Word32, Word)
 import Data.Bits ((.&.))
 import Foreign.Ptr
 import Foreign.C.Types
+import Sound.Pulse
 import Sound.Pulse.Context
 import Sound.Pulse.Userdata
 import Sound.Pulse.Def (SubscriptionEventFacility(..), SubscriptionEventType(..), subscriptionEventFacilityFromInt, subscriptionEventFacilityToInt, subscriptionEventTypeFromInt, subscriptionEventTypeToInt, SubscriptionMask(..), subscriptionMasksToInt)
@@ -63,6 +65,9 @@ foreign import ccall "pa_context_subscribe" pa_context_subscribe
     -> Ptr Userdata
     -> IO (Ptr UOperation)
 
+type Subscription =
+    (SubscriptionEventFacility, SubscriptionEventType) -> Word32 -> IO ()
+
 -- |Currently the function given here is leaked! even if it's reset later on
 -- This is currently unavoidable, since we don't know when the last event
 -- occured.
@@ -71,10 +76,7 @@ foreign import ccall "pa_context_subscribe" pa_context_subscribe
 subscribeEvents
     :: Context -- ^The Context to subscribe on
     -> [SubscriptionMask] -- ^The events that should be reported
-    -> ((SubscriptionEventFacility, SubscriptionEventType)
-        -> Word32
-        -> IO ()
-       ) -- ^Callback function that will be called on every event received.
+    -> Subscription -- ^Callback function that will be called on every event received.
     -> IO Operation
 subscribeEvents cxt mask fun = do
     funP <- mkSubscribeCB $ \_ ival idx _ ->
@@ -82,3 +84,8 @@ subscribeEvents cxt mask fun = do
     pa_context_set_subscribe_callback cxt funP nullPtr
     sucP <- wrapSuccess (\_ -> return ())
     ptrToOperation =<< pa_context_subscribe cxt (subscriptionMasksToInt mask) sucP nullPtr
+
+
+subscribeEventsM :: [SubscriptionMask] -> (Context -> Subscription) -> Pulse Operation
+subscribeEventsM mask sub =
+    Pulse $ \cxt f -> f =<< subscribeEvents cxt mask (sub cxt)

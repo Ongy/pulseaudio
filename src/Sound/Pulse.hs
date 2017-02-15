@@ -3,6 +3,7 @@
 module Sound.Pulse
     ( Pulse (..)
     , runPulse
+    , runPulse_
     , runGetPulse
 
     , pulseListM
@@ -45,6 +46,9 @@ instance MonadIO Pulse where
 
 runPulse :: MonadIO m => Context -> Pulse a -> (a -> IO ()) -> m ()
 runPulse cxt (Pulse x) f = liftIO $ x cxt f
+
+runPulse_ :: MonadIO m => Context -> Pulse a -> m ()
+runPulse_ cxt (Pulse x) = liftIO $ x cxt (const $ return ())
 
 runGetPulse :: MonadIO m => Context -> Pulse a -> m a
 runGetPulse cxt x = liftIO $ do
