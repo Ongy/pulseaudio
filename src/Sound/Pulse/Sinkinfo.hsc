@@ -32,6 +32,10 @@ module Sound.Pulse.Sinkinfo
     , getContextSinks
     , getContextSinkByName
     , getContextSinkByIndex
+
+    , getContextSinksM
+    , getContextSinkByNameM
+    , getContextSinkByIndexM
     )
 where
 
@@ -41,11 +45,13 @@ where
 #include <pulse/introspect.h>
 
 import Control.Applicative ((<$>), (<*>))
+import Sound.Pulse
 import Sound.Pulse.Volume
 import Sound.Pulse.Operation
 import Sound.Pulse.Userdata
 import Data.Word (Word32, Word8, Word)
 
+import Control.Monad (void)
 import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr, castFunPtrToPtr, castPtrToFunPtr)
 import Foreign.C.Types (CInt(..), CUInt(..))
 import Foreign.C.String (peekCString, withCString, CString)
@@ -150,6 +156,9 @@ getContextSinks cxt fun endf = do
     funP <- mkCallback fun endf
     ptrToOperation =<< pa_context_get_sink_info_list cxt funP (castFunPtrToPtr funP)
 
+getContextSinksM :: Pulse [Sinkinfo]
+getContextSinksM = pulseListM (\c cb e -> void $ getContextSinks c cb e)
+
 -- |Get a sink by name
 getContextSinkByName
     :: Context
@@ -160,6 +169,10 @@ getContextSinkByName cxt name fun = do
     funP <- mkCallback fun (return ())
     ptrToOperation =<< withCString name (\ptr -> pa_context_get_sink_info_by_name cxt ptr funP (castFunPtrToPtr funP))
 
+getContextSinkByNameM :: String -> Pulse Sinkinfo
+getContextSinkByNameM name =
+    Pulse (\cxt cb -> void $ getContextSinkByName cxt name cb)
+
 -- |Get a sink by index
 getContextSinkByIndex
     :: Context
@@ -169,3 +182,7 @@ getContextSinkByIndex
 getContextSinkByIndex cxt idx fun = do
     funP <- mkCallback fun (return ())
     ptrToOperation =<< pa_context_get_sink_info_by_index cxt (fromIntegral idx) funP (castFunPtrToPtr funP)
+
+getContextSinkByIndexM :: Word32 -> Pulse Sinkinfo
+getContextSinkByIndexM index =
+    Pulse (\cxt cb -> void $ getContextSinkByIndex cxt index cb)

@@ -26,6 +26,7 @@ Stability   : experimental
 module Sound.Pulse.Serverinfo
     ( ServerInfo(..)
     , getServerInfo
+    , getServerInfoM
     )
 where
 
@@ -36,6 +37,7 @@ where
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Word (Word32, Word)
+import Sound.Pulse
 import Sound.Pulse.SampleSpec
 import Sound.Pulse.ChannelPosition
 import Sound.Pulse.Context
@@ -91,3 +93,6 @@ getServerInfo cxt fun = do
         freeHaskellFunPtr (castPtrToFunPtr fP)
     _ <- ptrToOperation =<< pa_context_get_server_info cxt funP (castFunPtrToPtr funP)
     return ()
+
+getServerInfoM :: Pulse ServerInfo
+getServerInfoM = Pulse getServerInfo

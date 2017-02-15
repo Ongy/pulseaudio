@@ -10,7 +10,7 @@ name:                pulseaudio
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.0.1.1
+version:             0.0.2.0
 
 -- A short (one-line) description of the package.
 synopsis:            A low-level (incomplete) wrapper around the pulseaudio client asynchronous api
@@ -104,6 +104,7 @@ library
                        ,Sound.Pulse.Operation
                        ,Sound.Pulse.Serverinfo
                        ,Sound.Pulse.Volume
+                       ,Sound.Pulse
 
 
   
@@ -123,6 +124,9 @@ library
                       ,stm
                       ,containers
   
+  if impl(ghc < 8.0)
+    build-depends:     transformers
+
   -- Directories containing source files.
   hs-source-dirs:      src
   
