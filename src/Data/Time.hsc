@@ -94,10 +94,10 @@ getDiff l@(PATime ls ln) r@(PATime rs rn) = if l < r
     else let new = ln -rn
              cap = 1000 * 1000 * 1000
              over = if new < 0
-                     then (-1)
+                     then 1
                      else 0
              capped = new `mod` cap
-         in PATime (ls - rs + over) capped
+         in PATime (ls - rs - over) capped
 
 -- |Convert from Microseconds to 'PATime'
 timeFromUS :: Word -> PATime
