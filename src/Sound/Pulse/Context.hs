@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-
     Copyright 2016 Markus Ongyerth
 
@@ -44,16 +45,19 @@ module Sound.Pulse.Context
     )
 where
 
-import Control.Applicative ((<$>))
-import Control.Monad ((<=<))
-import Foreign.C.String
-import Foreign.C.Types
-import Foreign.Marshal.Utils
-import Foreign.Ptr
+import           Control.Applicative   ((<$>))
+import           Control.Monad         ((<=<))
+import           Data.Text             (Text)
+import           Foreign.C             (CString)
+import           Foreign.C.Types
+import           Foreign.Marshal.Utils
+import           Foreign.Ptr
 
-import Sound.Pulse.Def (ContextState(..), contextStateFromInt, ContextFlags(..), contextFlagssToInt)
-import Sound.Pulse.Mainloop
-import Sound.Pulse.Userdata
+import           Sound.Pulse.Def       (ContextState(..), contextStateFromInt, ContextFlags(..), contextFlagssToInt)
+import           Sound.Pulse.Mainloop
+import           Sound.Pulse.Userdata
+
+import           Foreign
 
 -- |Typesafety internal type
 data CInternal
@@ -93,21 +97,21 @@ foreign import ccall "pa_strerror" pa_strerror :: CInt-> CString
 getContext
     :: PAMainloop a
     => a -- ^The mainloop implementation
-    -> String -- ^The application name
+    -> Text -- ^The application name
     -> IO Context
 getContext impl name = do
     ptr <- new =<< getMainloopApi impl
-    withCString name (pa_context_new ptr)
+    withCStringText name (pa_context_new ptr)
 
 -- |Connect a Context to a pulseaudio server.
 connectContext
     :: Context -- ^The context
-    -> Maybe String -- ^The server to connect to. If this is Nothing, connect to the default server.
+    -> Maybe Text -- ^The server to connect to. If this is Nothing, connect to the default server.
     -> [ContextFlags] -- ^Flags to control the startup behaviour of the server.
     -- -> SpawnApi! -- TODO
     -> IO (Maybe Int)
 connectContext cxt serv flags = do
-    let wrapper = maybe ($ nullPtr) (withCString) serv
+    let wrapper = maybe ($ nullPtr) (withCStringText) serv
     ret <- wrapper (\ptr -> pa_context_connect cxt ptr (contextFlagssToInt flags) nullPtr)
     if ret /= 0
        then Just <$> getContextErr cxt
@@ -126,12 +130,12 @@ setStateCallback cxt fun = do
     pa_context_set_state_callback cxt funP nullPtr
 
 -- |Get the Servername from a (connected) 'Context'.
-getContextServer :: Context -> IO (Maybe String)
+getContextServer :: Context -> IO (Maybe Text)
 getContextServer cxt = do
     cstr <- pa_context_get_server cxt
     if cstr == nullPtr
        then return Nothing
-       else Just <$> peekCString cstr
+       else Just <$> peekCStringText cstr
 
 -- |Get the current state from a 'Context'.
 getContextState :: Context -> IO ContextState
@@ -141,6 +145,6 @@ getContextState = fmap contextStateFromInt . pa_context_get_state
 getContextErr :: Context -> IO Int
 getContextErr = fmap fromIntegral . pa_context_errno
 
--- |Get the last error from a 'Context' in a human readable 'String'.
-getContextErrStr :: Context -> IO String
-getContextErrStr = peekCString . pa_strerror . fromIntegral <=< getContextErr
+-- |Get the last error from a 'Context' in a human readable 'Text'.
+getContextErrStr :: Context -> IO Text
+getContextErrStr = peekCStringText . pa_strerror . fromIntegral <=< getContextErr

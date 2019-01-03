@@ -1,13 +1,18 @@
-import Sound.Pulse.Context
-import Sound.Pulse.Mainloop.Simple
+{-# LANGUAGE OverloadedStrings #-}
 
-import Data.Word (Word32)
-import Control.Monad (void)
-import Sound.Pulse.Mainloop
-import Sound.Pulse.Sinkinfo
-import Sound.Pulse.Subscribe
-import Sound.Pulse.Serverinfo
-import Sound.Pulse.Volume
+import           Data.Text                   (Text)
+import qualified Data.Text                   as Text
+import qualified Data.Text.IO                as Text
+import           Sound.Pulse.Context
+import           Sound.Pulse.Mainloop.Simple
+
+import           Data.Word                   (Word32)
+import           Control.Monad               (void)
+import           Sound.Pulse.Mainloop
+import           Sound.Pulse.Sinkinfo
+import           Sound.Pulse.Subscribe
+import           Sound.Pulse.Serverinfo
+import           Sound.Pulse.Volume
 
 printSink :: Sinkinfo -> IO ()
 printSink sink = do
@@ -16,7 +21,7 @@ printSink sink = do
     putStrLn . show $ map (\v -> v / base * 100) vol
 
 startLoop :: Context -> Sinkinfo -> IO ()
-startLoop cxt info = do 
+startLoop cxt info = do
     printSink info
     void $ subscribeEvents cxt [SubscriptionMaskSink] fun
     where fun :: ((SubscriptionEventFacility, SubscriptionEventType) -> Word32 -> IO ())
@@ -28,7 +33,7 @@ getDefaultSink cxt = void $ getServerInfo cxt fun
     where fun :: ServerInfo -> IO ()
           fun serv = let name = defaultSinkName serv in
                          do
-                            putStrLn ("Default sink: " ++ name)
+                            Text.putStrLn ("Default sink: " <> name)
                             void $ getContextSinkByName cxt name (startLoop cxt)
 
 
@@ -43,9 +48,10 @@ main = do
         case state of
             ContextFailed -> do
                 putStr "PulseError: "
-                putStrLn =<< getContextErrStr cxt
+                Text.putStrLn =<< getContextErrStr cxt
                 quitLoop impl =<< getContextErr cxt
             ContextReady -> getDefaultSink cxt
             _ -> return ()
     connectContext cxt Nothing []
     doLoop impl
+    return ()
