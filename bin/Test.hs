@@ -48,4 +48,4 @@ main = do
             ContextReady -> getDefaultSink cxt
             _ -> return ()
     connectContext cxt Nothing []
-    doLoop impl
+    void $ doLoop impl
