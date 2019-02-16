@@ -112,18 +112,20 @@ library
   other-modules:        Data.Time.Internal
                        ,Sound.Pulse.Userdata
                        ,Sound.Pulse.Def
-  
+                       ,Foreign
 
   
   -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:    
-  
+  -- other-extensions:
+
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.6 && <5
-                      ,unix
-                      ,stm
+                      ,bytestring
                       ,containers
-  
+                      ,stm
+                      ,text
+                      ,unix
+
   if impl(ghc < 8.0)
     build-depends:     transformers
 
@@ -135,4 +137,3 @@ library
   
   ghc-options:         -Wall
   extra-libraries:     pulse
-
