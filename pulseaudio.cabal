@@ -10,7 +10,7 @@ name:                pulseaudio
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.0.2.1
+version:             0.1.2.1
 
 -- A short (one-line) description of the package.
 synopsis:            A low-level (incomplete) wrapper around the pulseaudio client asynchronous api
