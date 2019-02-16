@@ -45,17 +45,20 @@ where
 #include <pulse/introspect.h>
 
 import Control.Applicative ((<$>), (<*>))
+import Data.Text (Text)
+import Data.Word (Word32, Word8, Word)
 import Sound.Pulse
-import Sound.Pulse.Volume
 import Sound.Pulse.Operation
 import Sound.Pulse.Userdata
-import Data.Word (Word32, Word8, Word)
+import Sound.Pulse.Volume
 
 import Control.Monad (void)
 import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr, castFunPtrToPtr, castPtrToFunPtr)
 import Foreign.C.Types (CInt(..), CUInt(..))
-import Foreign.C.String (peekCString, withCString, CString)
+import Foreign.C.String (CString)
 import Foreign.Storable (Storable(..))
+
+import Foreign
 
 import Sound.Pulse.Context (Context)
 import Sound.Pulse.ChannelPosition
@@ -70,18 +73,18 @@ data SinkPortInfo -- TODO
 
 -- |Type used for pa_sink_info
 data Sinkinfo = Sinkinfo
-    { siName              :: String
+    { siName              :: Text
     , siIndex             :: Word32
-    , siDescription       :: String
+    , siDescription       :: Text
     , siSampleSpec        :: SampleSpec
     , siChannelMap        :: ChannelMap
     , siOwnerModule       :: Word32
     , siVolume            :: CVolume
     , siMute              :: Bool
     , siMonitorSource     :: Word32
-    , siMonitorSourceName :: String
+    , siMonitorSourceName :: Text
     , siLatency           :: Word
-    , siDriver            :: String
+    , siDriver            :: Text
     , siFlags             :: [SinkFlags]
     , siProplist          :: Ptr PropList
     , siConfiguredLatency :: Word
@@ -98,18 +101,18 @@ instance Storable Sinkinfo where
     sizeOf _ = #{size struct pa_sink_info}
     alignment _ = #{alignment struct pa_sink_info}
     peek p = Sinkinfo
-       <$> (peekCString =<< #{peek struct pa_sink_info, name} p)
+       <$> (peekCStringText =<< #{peek struct pa_sink_info, name} p)
        <*> #{peek struct pa_sink_info, index} p
-       <*> (peekCString =<< #{peek struct pa_sink_info, description} p)
+       <*> (peekCStringText =<< #{peek struct pa_sink_info, description} p)
        <*> #{peek struct pa_sink_info, sample_spec} p
        <*> #{peek struct pa_sink_info, channel_map} p
        <*> #{peek struct pa_sink_info, owner_module} p
        <*> #{peek struct pa_sink_info, volume} p
        <*> ((/= (0 :: CInt)) <$> (#{peek struct pa_sink_info, mute} p))
        <*> #{peek struct pa_sink_info, monitor_source} p
-       <*> (peekCString =<< #{peek struct pa_sink_info, monitor_source_name} p)
+       <*> (peekCStringText =<< #{peek struct pa_sink_info, monitor_source_name} p)
        <*> #{peek struct pa_sink_info, latency} p
-       <*> (peekCString =<< #{peek struct pa_sink_info, driver} p)
+       <*> (peekCStringText =<< #{peek struct pa_sink_info, driver} p)
        <*> (sinkFlagssFromInt <$> (#{peek struct pa_sink_info, mute} p))
        <*> #{peek struct pa_sink_info, proplist} p
        <*> #{peek struct pa_sink_info, configured_latency} p
@@ -162,14 +165,14 @@ getContextSinksM = pulseListM (\c cb e -> void $ getContextSinks c cb e)
 -- |Get a sink by name
 getContextSinkByName
     :: Context
-    -> String
+    -> Text
     -> (Sinkinfo -> IO ())
     -> IO Operation
 getContextSinkByName cxt name fun = do
     funP <- mkCallback fun (return ())
-    ptrToOperation =<< withCString name (\ptr -> pa_context_get_sink_info_by_name cxt ptr funP (castFunPtrToPtr funP))
+    ptrToOperation =<< withCStringText name (\ptr -> pa_context_get_sink_info_by_name cxt ptr funP (castFunPtrToPtr funP))
 
-getContextSinkByNameM :: String -> Pulse Sinkinfo
+getContextSinkByNameM :: Text -> Pulse Sinkinfo
 getContextSinkByNameM name =
     Pulse (\cxt cb -> void $ getContextSinkByName cxt name cb)
 

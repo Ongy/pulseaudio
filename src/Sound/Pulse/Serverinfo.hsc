@@ -36,27 +36,29 @@ where
 #include <pulse/introspect.h>
 
 import Control.Applicative ((<$>), (<*>))
+import Data.Text (Text)
 import Data.Word (Word32, Word)
 import Sound.Pulse
-import Sound.Pulse.SampleSpec
 import Sound.Pulse.ChannelPosition
 import Sound.Pulse.Context
-import Sound.Pulse.Userdata
 import Sound.Pulse.Operation
+import Sound.Pulse.SampleSpec
+import Sound.Pulse.Userdata
 
 import Foreign.Storable
 import Foreign.Ptr
-import Foreign.C.String
+
+import Foreign
 
 -- |The type used for pa_server_info
 data ServerInfo = ServerInfo
-    { userName          :: String
-    , hostName          :: String
-    , serverVersion     :: String
-    , serverName        :: String
+    { userName          :: Text
+    , hostName          :: Text
+    , serverVersion     :: Text
+    , serverName        :: Text
     , sampleSpec        :: SampleSpec
-    , defaultSinkName   :: String
-    , defaultSourceName :: String
+    , defaultSinkName   :: Text
+    , defaultSourceName :: Text
     , cookie            :: Word32
     , channelMap        :: ChannelMap
     } deriving (Eq, Show)
@@ -65,13 +67,13 @@ instance Storable ServerInfo where
     sizeOf _ = #{size struct pa_server_info}
     alignment _ = #{alignment struct pa_server_info}
     peek p = ServerInfo
-        <$> (peekCString =<< #{peek struct pa_server_info, user_name} p)
-        <*> (peekCString =<< #{peek struct pa_server_info, host_name} p)
-        <*> (peekCString =<< #{peek struct pa_server_info, server_version} p)
-        <*> (peekCString =<< #{peek struct pa_server_info, server_name} p)
+        <$> (peekCStringText =<< #{peek struct pa_server_info, user_name} p)
+        <*> (peekCStringText =<< #{peek struct pa_server_info, host_name} p)
+        <*> (peekCStringText =<< #{peek struct pa_server_info, server_version} p)
+        <*> (peekCStringText =<< #{peek struct pa_server_info, server_name} p)
         <*> #{peek struct pa_server_info, sample_spec} p
-        <*> (peekCString =<< #{peek struct pa_server_info, default_sink_name} p)
-        <*> (peekCString =<< #{peek struct pa_server_info, default_source_name} p)
+        <*> (peekCStringText =<< #{peek struct pa_server_info, default_sink_name} p)
+        <*> (peekCStringText =<< #{peek struct pa_server_info, default_source_name} p)
         <*> #{peek struct pa_server_info, cookie} p
         <*> #{peek struct pa_server_info, channel_map} p
     
