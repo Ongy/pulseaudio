@@ -70,7 +70,7 @@ type Subscription =
 
 -- |Currently the function given here is leaked! even if it's reset later on
 -- This is currently unavoidable, since we don't know when the last event
--- occured.
+-- occurred.
 -- This should only be called once per application run, so it will be a known
 -- issue for now.
 subscribeEvents
