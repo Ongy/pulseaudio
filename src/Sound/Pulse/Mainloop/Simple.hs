@@ -194,7 +194,7 @@ waitEvents impl = do
     --            if null writeEvts
     --        then retry
     --        else foldr1 (<|>) writeEvts
-    -- We prefere reading over writing with this!
+    -- We prefer reading over writing with this!
 
 -- |Do one iteration of waiting for and dispatching events.
 doRun :: MainloopImpl -> IO ()
@@ -230,7 +230,7 @@ doRun impl = do
             _ <- fdRead (fst . implPipe $ impl) 512
             return ()
 
--- |Do one iteration of events. This may be dispatchin defered events,
+-- |Do one iteration of events. This may be dispatchin deferred events,
 -- a timer, an io event, or simply a wakeup.
 -- Event callback will be called in the same thread as this!
 doIteration :: MainloopImpl -> IO ()

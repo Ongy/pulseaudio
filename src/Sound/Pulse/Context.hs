@@ -70,7 +70,7 @@ data PASpawnApi
 type ContextSuccessCB = Context -> CInt -> Ptr Userdata -> IO ()
 foreign import ccall "wrapper" mkCSuccess :: ContextSuccessCB -> IO (FunPtr ContextSuccessCB)
 
--- |Wrapp a function callback for 'ContextSuccessCB'
+-- |Wrap a function callback for 'ContextSuccessCB'
 wrapSuccess
     :: (Bool -> IO ())
     -> IO (FunPtr ContextSuccessCB)
@@ -117,7 +117,7 @@ connectContext cxt serv flags = do
        else return Nothing
 
 -- |This callback is leaked! if it's reset
--- IMO the handler should stay forever aswell (even if just for loggin), so don't worry about it.
+-- IMO the handler should stay forever as well (even if just for logging), so don't worry about it.
 -- This should only be called once per application run though, so it will be a
 -- known issue for know.
 setStateCallback

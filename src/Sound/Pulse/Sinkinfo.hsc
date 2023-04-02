@@ -146,7 +146,7 @@ mkCallback fun endf = mkSinkinfoCB $
         then fun =<< peek ptr
         else do
             endf -- Call the user end function
-            -- free the FunPtr defiend here
+            -- free the FunPtr defined here
             freeHaskellFunPtr (castPtrToFunPtr fP)
 
 -- |Get all sinks from a context.
